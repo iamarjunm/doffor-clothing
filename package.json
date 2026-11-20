@@ -1,0 +1,28 @@
+{
+  "name": "doffor-clothing",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Doffor Clothing — Premium Heavyweight College Streetwear Next.js Storefront with Firebase Auth (Google Sign-In/Up), Firestore, Firebase Storage, Razorpay & Full Admin Panel",
+  "scripts": {
+    "sync-assets": "node scripts/sync-assets.mjs",
+    "predev": "node scripts/sync-assets.mjs",
+    "prebuild": "node scripts/sync-assets.mjs",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "firebase": "^11.0.2",
+    "lucide-react": "^0.454.0",
+    "next": "^15.0.3",
+    "razorpay": "^2.9.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.14"
+  }
+}
