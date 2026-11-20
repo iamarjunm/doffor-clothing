@@ -1,48 +1,686 @@
 rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model — Doffor Clothing (Cloud Firestore)
+// ===============================================================
+//
+// Collection: users
+// Document ID: {userId} (Firebase Auth UID)
+// Fields:
+//   - uid: string (required, immutable, must equal userId, 1..128 chars)
+//   - name: string (required, 1..100 chars)
+//   - email: string (required, valid email, <= 254 chars; non-admins cannot change)
+//   - role: string (optional on create; 'customer' | 'admin'; non-admins may ONLY set 'customer' or omit, and may NEVER modify on update)
+//   - provider: string (optional, 'google' | 'email')
+//   - avatar: string (optional, '' or valid https/http//images URL, <= 1500 chars)
+//   - phone: string (optional, <= 30 chars)
+//   - city: string (optional, <= 100 chars)
+//   - createdAt: string (optional, ISO 8601 date string, <= 40 chars, immutable once set)
+//
+// Collection: products
+// Document ID: {productId} (slug-style product ID, e.g. 'prod-angel-fullsleeve')
+// Fields:
+//   - id: string (required, immutable, must equal productId, 1..120 chars)
+//   - slug: string (required, 1..160 chars)
+//   - sku: string (required, 1..64 chars)
+//   - name: string (required, 1..160 chars)
+//   - subtitle: string (optional, <= 240 chars)
+//   - category: string (required, 'oversized-tees' | 'full-sleeves' | 'muscle-tanks' | 'limited-drops')
+//   - categoryLabel: string (optional, <= 80 chars)
+//   - price: number (required, > 0 && <= 1000000)
+//   - compareAtPrice: number (optional, >= 0 && <= 2000000)
+//   - gsm: number (optional, >= 100 && <= 800)
+//   - fit: string (optional, <= 80 chars)
+//   - fabric: string (optional, <= 200 chars)
+//   - printTech: string (optional, <= 200 chars)
+//   - featured: bool (optional)
+//   - isNewDrop: bool (optional)
+//   - bestseller: bool (optional)
+//   - active: bool (optional)
+//   - badges: list (optional, <= 10 items)
+//   - rating: number (optional, >= 0 && <= 5)
+//   - reviewCount: int (optional, >= 0 && <= 1000000)
+//   - images: list (required, 1..20 items)
+//   - colors: list (optional, <= 20 items)
+//   - sizes: map (required, keys subset of ['XS','S','M','L','XL','XXL','3XL'], int values 0..100000)
+//   - description: string (optional, <= 5000 chars)
+//   - highlights: list (optional, <= 20 items)
+//   - reviews: list (optional, <= 500 items; signed-in users may prepend 1 validated review without altering other fields)
+//   - updatedAt: string (optional, ISO 8601 date string, <= 40 chars)
+//   - createdAt: string (optional, ISO 8601 date string, <= 40 chars)
+//
+// Collection: config
+// Document ID: 'storefront'
+// Fields:
+//   - brandName, brandWordmark, announcementEnabled, announcementText,
+//     announcementBg, announcementTextColor, dropTitle, dropCountdownEnd,
+//     freeShippingThreshold, standardShippingFee, expressShippingFee,
+//     codFee, codEnabled, theme, sections, hero, newArrivals,
+//     editorialSplit, silhouettes, craftStory, lookbookStrip, privilegeBar, footer
+//
+// Collection: coupons
+// Document ID: {couponId}
+// Fields:
+//   - id: string (required, immutable, must equal couponId, 1..100 chars)
+//   - code: string (required, 2..32 chars, uppercase alphanumeric/hyphen/underscore)
+//   - type: string (required, 'percent' | 'flat')
+//   - value: number (required, > 0; <= 100 for 'percent', <= 100000 for 'flat')
+//   - minOrder: number (required, >= 0 && <= 1000000)
+//   - maxDiscount: number (required, >= 0 && <= 1000000)
+//   - description: string (optional, <= 300 chars)
+//   - active: bool (required)
+//   - usageCount: int (optional, >= 0 && <= 10000000)
+//
+// Collection: orders
+// Document ID: {orderId}
+// Fields:
+//   - id: string (required, immutable, must equal orderId, 1..100 chars)
+//   - orderNumber: string (required, immutable, matches ^DFR-\d{4}-\d{4,6}$)
+//   - userId: string (required, immutable; equals request.auth.uid if signed in, or 'guest' if unauthenticated)
+//   - customerName: string (required, 1..120 chars)
+//   - customerEmail: string (required, valid email, <= 254 chars)
+//   - customerPhone: string (required, 7..25 chars)
+//   - shippingAddress: map (required; fullName, phone, line1, landmark?, city, state, pincode)
+//   - items: list (required, 1..50 items; first item structurally validated)
+//   - subtotal: number (required, > 0 && <= 5000000)
+//   - discount: number (required, >= 0 && <= subtotal)
+//   - couponCode: string | null (optional, <= 32 chars)
+//   - shippingFee: number (required, >= 0 && <= 10000)
+//   - codFee: number (optional, >= 0 && <= 10000)
+//   - deliverySpeed: string (optional, 'standard' | 'express')
+//   - total: number (required, > 0 && <= 5000000; must reconcile with subtotal - discount + shippingFee + codFee)
+//   - paymentMethod: string (required, 1..60 chars)
+//   - paymentStatus: string (required; on create: 'paid' | 'pending_cod'; admin update adds 'pending' | 'failed' | 'refunded')
+//   - razorpayOrderId: string (optional, <= 120 chars)
+//   - razorpayPaymentId: string (optional, <= 120 chars)
+//   - status: string (required; on create: 'processing' | 'confirmed'; admin update adds 'packed' | 'shipped' | 'delivered' | 'cancelled')
+//   - trackingNumber: string (optional, <= 100 chars; must be '' or omitted on client create)
+//   - createdAt: string (required, immutable, ISO 8601 date string, <= 40 chars)
+//
+// Collection: inquiries
+// Document ID: {inquiryId}
+// Fields:
+//   - id: string (required, immutable, must equal inquiryId, 1..100 chars)
+//   - type: string (required, 'support' | 'custom-collab')
+//   - name: string (required, 1..100 chars)
+//   - email: string (required, valid email, <= 254 chars)
+//   - organization: string (optional, <= 160 chars)
+//   - quantity: string (optional, <= 120 chars)
+//   - orderNumber: string (optional, <= 40 chars)
+//   - message: string (required, 1..3000 chars)
+//   - createdAt: string (required, immutable, ISO 8601 date string, <= 40 chars)
+//
+// Collection: newsletter
+// Document ID: {subId} (normalized lowercase email address)
+// Fields:
+//   - email: string (required, immutable, valid lowercase email, must equal subId, <= 254 chars)
+//   - createdAt: string (required, immutable, ISO 8601 date string, <= 40 chars)
+//
+// ===============================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isSignedIn() {
+
+    // ===============================================================
+    // Core Auth & RBAC Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return isSignedIn() &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function hasAdminRoleDoc() {
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      return exists(userPath) &&
+             ('role' in get(userPath).data) &&
+             get(userPath).data.role == 'admin';
+    }
+
+    // Authority is derived ONLY from trusted Auth custom claims or an existing
+    // persisted admin user document — NEVER from client-supplied request.resource.data.
+    function isAdmin() {
+      return isAuthenticated() && (
+        ('role' in request.auth.token && request.auth.token.role == 'admin') ||
+        ('admin' in request.auth.token && request.auth.token.admin == true) ||
+        hasAdminRoleDoc()
+      );
+    }
+
+    // Verify UID hasn't been tampered with on create
+    function uidUnchanged() {
+      return !('uid' in request.resource.data) ||
+             request.resource.data.uid == request.auth.uid;
+    }
+
+    // Ensure uid field is not modified on update
+    function uidNotModified() {
+      return !('uid' in request.resource.data) ||
+             ('uid' in resource.data && request.resource.data.uid == resource.data.uid);
+    }
+
+    // ===============================================================
+    // Generic Validation Helper Functions
+    // ===============================================================
+
+    function hasRequiredFields(data, fields) {
+      return data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(data, fields) {
+      return data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+             email.size() >= 5 &&
+             email.size() <= 254 &&
+             email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+             dateStr.size() >= 19 &&
+             dateStr.size() <= 40 &&
+             dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // Accepts https://, http://, or local storefront /images/ paths without traversal
+    function isValidImageUrl(url) {
+      return url is string &&
+             url.size() >= 1 &&
+             url.size() <= 1500 &&
+             !url.matches(".*\\.\\..*") &&
+             (url.matches("^https://.*") || url.matches("^http://.*") || url.matches("^/images/.*"));
+    }
+
+    function isValidOptionalString(data, field, minLen, maxLen) {
+      return !(field in data) || (
+        data[field] is string &&
+        data[field].size() >= minLen &&
+        data[field].size() <= maxLen
+      );
+    }
+
+    function isValidOptionalBool(data, field) {
+      return !(field in data) || data[field] is bool;
+    }
+
+    function isValidOptionalNumber(data, field, minVal, maxVal) {
+      return !(field in data) || (
+        data[field] is number &&
+        data[field] >= minVal &&
+        data[field] <= maxVal
+      );
+    }
+
+    function isValidList(val, minSize, maxSize) {
+      return val is list && val.size() >= minSize && val.size() <= maxSize;
+    }
+
+    // ===============================================================
+    // Domain Validators (Called in BOTH create and update rules)
+    // ===============================================================
+
+    // 1. Users Validator
+    function isValidUser(data, userId) {
+      let allowed = ['uid', 'name', 'email', 'role', 'provider', 'avatar', 'phone', 'city', 'createdAt'];
+      let required = ['uid', 'name', 'email'];
+      return hasOnlyAllowedFields(data, allowed) &&
+             hasRequiredFields(data, required) &&
+             data.uid is string && data.uid == userId && data.uid.size() >= 1 && data.uid.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             isValidEmail(data.email) &&
+             (!('role' in data) || (data.role is string && data.role in ['customer', 'admin'])) &&
+             (!('provider' in data) || (data.provider is string && data.provider in ['google', 'email'])) &&
+             (!('avatar' in data) || (data.avatar is string && (data.avatar == '' || isValidImageUrl(data.avatar)))) &&
+             isValidOptionalString(data, 'phone', 0, 30) &&
+             isValidOptionalString(data, 'city', 0, 100) &&
+             (!('createdAt' in data) || isValidDateString(data.createdAt));
+    }
+
+    // 2. Products & Reviews Validators
+    function isValidSizeEntry(sizes, key) {
+      return !(key in sizes) || (sizes[key] is int && sizes[key] >= 0 && sizes[key] <= 100000);
+    }
+
+    function isValidSizesMap(sizes) {
+      return sizes is map &&
+             sizes.size() >= 1 &&
+             sizes.keys().hasOnly(['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']) &&
+             isValidSizeEntry(sizes, 'XS') &&
+             isValidSizeEntry(sizes, 'S') &&
+             isValidSizeEntry(sizes, 'M') &&
+             isValidSizeEntry(sizes, 'L') &&
+             isValidSizeEntry(sizes, 'XL') &&
+             isValidSizeEntry(sizes, 'XXL') &&
+             isValidSizeEntry(sizes, '3XL');
+    }
+
+    function isValidReview(rev) {
+      let allowed = ['id', 'userName', 'city', 'rating', 'fitFeedback', 'comment', 'createdAt', 'verified'];
+      let required = ['id', 'userName', 'rating', 'comment', 'createdAt'];
+      return rev is map &&
+             hasOnlyAllowedFields(rev, allowed) &&
+             hasRequiredFields(rev, required) &&
+             rev.id is string && rev.id.size() >= 1 && rev.id.size() <= 80 &&
+             rev.userName is string && rev.userName.size() >= 1 && rev.userName.size() <= 80 &&
+             isValidOptionalString(rev, 'city', 0, 80) &&
+             rev.rating is number && rev.rating >= 1 && rev.rating <= 5 &&
+             (!('fitFeedback' in rev) || (rev.fitFeedback is string && rev.fitFeedback in ['Runs Small', 'True to Oversized', 'Runs Large'])) &&
+             rev.comment is string && rev.comment.size() >= 1 && rev.comment.size() <= 1500 &&
+             isValidDateString(rev.createdAt) &&
+             isValidOptionalBool(rev, 'verified');
+    }
+
+    function isValidProduct(data, productId) {
+      let allowed = [
+        'id', 'slug', 'sku', 'name', 'subtitle', 'category', 'categoryLabel',
+        'price', 'compareAtPrice', 'gsm', 'fit', 'fabric', 'printTech',
+        'featured', 'isNewDrop', 'bestseller', 'active', 'badges',
+        'rating', 'reviewCount', 'images', 'colors', 'sizes',
+        'description', 'highlights', 'reviews', 'updatedAt', 'createdAt'
+      ];
+      let required = ['id', 'slug', 'sku', 'name', 'category', 'price', 'images', 'sizes'];
+      return hasOnlyAllowedFields(data, allowed) &&
+             hasRequiredFields(data, required) &&
+             data.id is string && data.id == productId && data.id.size() >= 1 && data.id.size() <= 120 &&
+             data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 160 &&
+             data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 64 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+             isValidOptionalString(data, 'subtitle', 0, 240) &&
+             data.category is string && data.category in ['oversized-tees', 'full-sleeves', 'muscle-tanks', 'limited-drops'] &&
+             isValidOptionalString(data, 'categoryLabel', 0, 80) &&
+             data.price is number && data.price > 0 && data.price <= 1000000 &&
+             isValidOptionalNumber(data, 'compareAtPrice', 0, 2000000) &&
+             isValidOptionalNumber(data, 'gsm', 100, 800) &&
+             isValidOptionalString(data, 'fit', 0, 80) &&
+             isValidOptionalString(data, 'fabric', 0, 200) &&
+             isValidOptionalString(data, 'printTech', 0, 200) &&
+             isValidOptionalBool(data, 'featured') &&
+             isValidOptionalBool(data, 'isNewDrop') &&
+             isValidOptionalBool(data, 'bestseller') &&
+             isValidOptionalBool(data, 'active') &&
+             (!('badges' in data) || isValidList(data.badges, 0, 10)) &&
+             isValidOptionalNumber(data, 'rating', 0, 5) &&
+             (!('reviewCount' in data) || (data.reviewCount is int && data.reviewCount >= 0 && data.reviewCount <= 1000000)) &&
+             isValidList(data.images, 1, 20) &&
+             isValidImageUrl(data.images[0]) &&
+             (!('colors' in data) || isValidList(data.colors, 0, 20)) &&
+             isValidSizesMap(data.sizes) &&
+             isValidOptionalString(data, 'description', 0, 5000) &&
+             (!('highlights' in data) || isValidList(data.highlights, 0, 20)) &&
+             (!('reviews' in data) || isValidList(data.reviews, 0, 500)) &&
+             (!('updatedAt' in data) || isValidDateString(data.updatedAt)) &&
+             (!('createdAt' in data) || isValidDateString(data.createdAt));
+    }
+
+    // Controlled customer review update: signed-in users may ONLY prepend 1 validated review,
+    // increment reviewCount by exactly +1, update rating/updatedAt, and NEVER alter price,
+    // stock sizes, title, images, active status, or any previously submitted reviews.
+    function isValidCustomerReviewUpdate(productId) {
+      let prevReviews = ('reviews' in resource.data && resource.data.reviews is list) ? resource.data.reviews : [];
+      let prevCount = ('reviewCount' in resource.data && resource.data.reviewCount is int) ? resource.data.reviewCount : 0;
+      let nextReviews = ('reviews' in request.resource.data && request.resource.data.reviews is list) ? request.resource.data.reviews : [];
+      return isAuthenticated() &&
+             isValidProduct(request.resource.data, productId) &&
+             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviews', 'reviewCount', 'rating', 'updatedAt']) &&
+             ('reviews' in request.resource.data) &&
+             request.resource.data.reviews is list &&
+             nextReviews.size() == prevReviews.size() + 1 &&
+             nextReviews.size() <= 500 &&
+             isValidReview(nextReviews[0]) &&
+             (prevReviews.size() == 0 || nextReviews[1:nextReviews.size()] == prevReviews) &&
+             ('reviewCount' in request.resource.data) &&
+             request.resource.data.reviewCount == prevCount + 1 &&
+             ('rating' in request.resource.data) &&
+             request.resource.data.rating is number &&
+             request.resource.data.rating >= 1 &&
+             request.resource.data.rating <= 5;
+    }
+
+    // 3. Storefront Config Validator
+    function isValidStoreConfig(data) {
+      let allowed = [
+        'brandName', 'brandWordmark', 'announcementEnabled', 'announcementText',
+        'announcementBg', 'announcementTextColor', 'dropTitle', 'dropCountdownEnd',
+        'freeShippingThreshold', 'standardShippingFee', 'expressShippingFee',
+        'codFee', 'codEnabled', 'theme', 'sections', 'hero', 'newArrivals',
+        'editorialSplit', 'silhouettes', 'craftStory', 'lookbookStrip',
+        'privilegeBar', 'footer'
+      ];
+      return hasOnlyAllowedFields(data, allowed) &&
+             isValidOptionalString(data, 'brandName', 1, 100) &&
+             isValidOptionalString(data, 'brandWordmark', 1, 50) &&
+             isValidOptionalBool(data, 'announcementEnabled') &&
+             isValidOptionalString(data, 'announcementText', 0, 300) &&
+             isValidOptionalString(data, 'announcementBg', 0, 30) &&
+             isValidOptionalString(data, 'announcementTextColor', 0, 30) &&
+             isValidOptionalString(data, 'dropTitle', 0, 120) &&
+             (!('dropCountdownEnd' in data) || isValidDateString(data.dropCountdownEnd)) &&
+             isValidOptionalNumber(data, 'freeShippingThreshold', 0, 100000) &&
+             isValidOptionalNumber(data, 'standardShippingFee', 0, 10000) &&
+             isValidOptionalNumber(data, 'expressShippingFee', 0, 10000) &&
+             isValidOptionalNumber(data, 'codFee', 0, 10000) &&
+             isValidOptionalBool(data, 'codEnabled') &&
+             (!('theme' in data) || (data.theme is map && data.theme.keys().hasOnly(['canvasBg', 'surfaceBg', 'inkColor', 'buttonBg', 'buttonText', 'buttonRadius']))) &&
+             (!('sections' in data) || (data.sections is map && data.sections.keys().hasOnly(['showNewArrivals', 'showEditorialSplit', 'showSilhouettes', 'showCraftStory', 'showLookbookStrip', 'showPrivilegeBar']))) &&
+             (!('hero' in data) || (data.hero is map && data.hero.keys().hasOnly(['eyebrow', 'headlineLine1', 'headlineLine2', 'description', 'primaryCtaLabel', 'primaryCtaHref', 'secondaryCtaLabel', 'secondaryCtaHref', 'image', 'overlayOpacity']))) &&
+             (!('newArrivals' in data) || (data.newArrivals is map && data.newArrivals.keys().hasOnly(['eyebrow', 'heading', 'maxItems']))) &&
+             (!('editorialSplit' in data) || isValidList(data.editorialSplit, 0, 10)) &&
+             (!('silhouettes' in data) || isValidList(data.silhouettes, 0, 12)) &&
+             (!('craftStory' in data) || (data.craftStory is map && data.craftStory.keys().hasOnly(['eyebrow', 'heading', 'body', 'stat1Value', 'stat1Label', 'stat2Value', 'stat2Label', 'stat3Value', 'stat3Label', 'ctaLabel', 'ctaHref', 'image1', 'image2']))) &&
+             (!('lookbookStrip' in data) || isValidList(data.lookbookStrip, 0, 24)) &&
+             (!('privilegeBar' in data) || (data.privilegeBar is map && data.privilegeBar.keys().hasOnly(['eyebrow', 'heading', 'description', 'promoCode', 'ctaLabel', 'ctaHref']))) &&
+             (!('footer' in data) || (data.footer is map && data.footer.keys().hasOnly(['bio', 'supportEmail', 'instagramUrl', 'youtubeUrl', 'copyright'])));
+    }
+
+    // 4. Coupons Validator
+    function isValidCoupon(data, couponId) {
+      let allowed = ['id', 'code', 'type', 'value', 'minOrder', 'maxDiscount', 'description', 'active', 'usageCount'];
+      let required = ['id', 'code', 'type', 'value', 'minOrder', 'maxDiscount', 'active'];
+      return hasOnlyAllowedFields(data, allowed) &&
+             hasRequiredFields(data, required) &&
+             data.id is string && data.id == couponId && data.id.size() >= 1 && data.id.size() <= 100 &&
+             data.code is string && data.code.size() >= 2 && data.code.size() <= 32 &&
+             data.code.matches("^[A-Z0-9_-]+$") &&
+             data.type is string && data.type in ['percent', 'flat'] &&
+             data.value is number && data.value > 0 &&
+             ((data.type == 'percent' && data.value <= 100) || (data.type == 'flat' && data.value <= 100000)) &&
+             data.minOrder is number && data.minOrder >= 0 && data.minOrder <= 1000000 &&
+             data.maxDiscount is number && data.maxDiscount >= 0 && data.maxDiscount <= 1000000 &&
+             isValidOptionalString(data, 'description', 0, 300) &&
+             data.active is bool &&
+             (!('usageCount' in data) || (data.usageCount is int && data.usageCount >= 0 && data.usageCount <= 10000000));
+    }
+
+    // 5. Orders Validators
+    function isValidShippingAddress(addr) {
+      let allowed = ['fullName', 'phone', 'line1', 'landmark', 'city', 'state', 'pincode'];
+      let required = ['fullName', 'phone', 'line1', 'city', 'state', 'pincode'];
+      return addr is map &&
+             hasOnlyAllowedFields(addr, allowed) &&
+             hasRequiredFields(addr, required) &&
+             addr.fullName is string && addr.fullName.size() >= 1 && addr.fullName.size() <= 120 &&
+             addr.phone is string && addr.phone.size() >= 7 && addr.phone.size() <= 25 &&
+             addr.line1 is string && addr.line1.size() >= 3 && addr.line1.size() <= 300 &&
+             isValidOptionalString(addr, 'landmark', 0, 200) &&
+             addr.city is string && addr.city.size() >= 1 && addr.city.size() <= 100 &&
+             addr.state is string && addr.state.size() >= 1 && addr.state.size() <= 100 &&
+             addr.pincode is string && addr.pincode.matches("^\\d{6}$");
+    }
+
+    function isValidOrderItem(item) {
+      let allowed = ['productId', 'slug', 'name', 'image', 'color', 'size', 'quantity', 'price'];
+      let required = ['productId', 'name', 'size', 'quantity', 'price'];
+      return item is map &&
+             hasOnlyAllowedFields(item, allowed) &&
+             hasRequiredFields(item, required) &&
+             item.productId is string && item.productId.size() >= 1 && item.productId.size() <= 120 &&
+             isValidOptionalString(item, 'slug', 0, 160) &&
+             item.name is string && item.name.size() >= 1 && item.name.size() <= 160 &&
+             (!('image' in item) || (item.image is string && (item.image == '' || isValidImageUrl(item.image)))) &&
+             isValidOptionalString(item, 'color', 0, 80) &&
+             item.size is string && item.size in ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'] &&
+             item.quantity is int && item.quantity >= 1 && item.quantity <= 50 &&
+             item.price is number && item.price > 0 && item.price <= 500000;
+    }
+
+    function isValidOrder(data, orderId) {
+      let allowed = [
+        'id', 'orderNumber', 'userId', 'customerName', 'customerEmail', 'customerPhone',
+        'shippingAddress', 'items', 'subtotal', 'discount', 'couponCode',
+        'shippingFee', 'codFee', 'deliverySpeed', 'total',
+        'paymentMethod', 'paymentStatus', 'razorpayOrderId', 'razorpayPaymentId',
+        'status', 'trackingNumber', 'createdAt'
+      ];
+      let required = [
+        'id', 'orderNumber', 'userId', 'customerName', 'customerEmail', 'customerPhone',
+        'shippingAddress', 'items', 'subtotal', 'discount', 'shippingFee',
+        'total', 'paymentMethod', 'paymentStatus', 'status', 'createdAt'
+      ];
+      let codFeeVal = ('codFee' in data) ? data.codFee : 0;
+      return hasOnlyAllowedFields(data, allowed) &&
+             hasRequiredFields(data, required) &&
+             data.id is string && data.id == orderId && data.id.size() >= 1 && data.id.size() <= 100 &&
+             data.orderNumber is string && data.orderNumber.matches("^DFR-\\d{4}-\\d{4,6}$") &&
+             data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120 &&
+             isValidEmail(data.customerEmail) &&
+             data.customerPhone is string && data.customerPhone.size() >= 7 && data.customerPhone.size() <= 25 &&
+             isValidShippingAddress(data.shippingAddress) &&
+             isValidList(data.items, 1, 50) &&
+             isValidOrderItem(data.items[0]) &&
+             data.subtotal is number && data.subtotal > 0 && data.subtotal <= 5000000 &&
+             data.discount is number && data.discount >= 0 && data.discount <= data.subtotal &&
+             (!('couponCode' in data) || data.couponCode == null || (data.couponCode is string && data.couponCode.size() >= 1 && data.couponCode.size() <= 32)) &&
+             data.shippingFee is number && data.shippingFee >= 0 && data.shippingFee <= 10000 &&
+             isValidOptionalNumber(data, 'codFee', 0, 10000) &&
+             (!('deliverySpeed' in data) || (data.deliverySpeed is string && data.deliverySpeed in ['standard', 'express'])) &&
+             data.total is number && data.total > 0 && data.total <= 5000000 &&
+             math.abs(data.total - (data.subtotal - data.discount + data.shippingFee + codFeeVal)) <= 1 &&
+             data.paymentMethod is string && data.paymentMethod.size() >= 1 && data.paymentMethod.size() <= 60 &&
+             data.paymentStatus is string && data.paymentStatus in ['paid', 'pending_cod', 'pending', 'failed', 'refunded'] &&
+             isValidOptionalString(data, 'razorpayOrderId', 0, 120) &&
+             isValidOptionalString(data, 'razorpayPaymentId', 0, 120) &&
+             data.status is string && data.status in ['processing', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'] &&
+             isValidOptionalString(data, 'trackingNumber', 0, 100) &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isOrderOwner() {
+      return isAuthenticated() && (
+        ('userId' in resource.data && resource.data.userId == request.auth.uid) ||
+        (
+          ('email' in request.auth.token) &&
+          request.auth.token.email is string &&
+          ('email_verified' in request.auth.token) &&
+          request.auth.token.email_verified == true &&
+          ('customerEmail' in resource.data) &&
+          resource.data.customerEmail is string &&
+          resource.data.customerEmail.lower() == request.auth.token.email.lower()
+        )
+      );
+    }
+
+    // 6. Inquiries Validator
+    function isValidInquiry(data, inquiryId) {
+      let allowed = ['id', 'type', 'name', 'email', 'organization', 'quantity', 'orderNumber', 'message', 'createdAt'];
+      let required = ['id', 'type', 'name', 'email', 'message', 'createdAt'];
+      return hasOnlyAllowedFields(data, allowed) &&
+             hasRequiredFields(data, required) &&
+             data.id is string && data.id == inquiryId && data.id.size() >= 1 && data.id.size() <= 100 &&
+             data.type is string && data.type in ['support', 'custom-collab'] &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             isValidEmail(data.email) &&
+             isValidOptionalString(data, 'organization', 0, 160) &&
+             isValidOptionalString(data, 'quantity', 0, 120) &&
+             isValidOptionalString(data, 'orderNumber', 0, 40) &&
+             data.message is string && data.message.size() >= 1 && data.message.size() <= 3000 &&
+             isValidDateString(data.createdAt);
+    }
+
+    // 7. Newsletter Validator
+    function isValidNewsletterSub(data, subId) {
+      let allowed = ['email', 'createdAt'];
+      let required = ['email', 'createdAt'];
+      return hasOnlyAllowedFields(data, allowed) &&
+             hasRequiredFields(data, required) &&
+             isValidEmail(data.email) &&
+             data.email == data.email.lower() &&
+             data.email == subId &&
+             isValidDateString(data.createdAt);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. USERS (Contains PII: email, phone, city — NEVER publicly or blanket-auth readable)
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+
+      // Anti-privilege escalation: Normal users signing up may ONLY set role == 'customer'
+      // (or omit role), NEVER 'admin'. Only an existing admin can create admin user docs.
+      allow create: if isAuthenticated() &&
+                       isValidUser(request.resource.data, userId) && (
+                         isAdmin() || (
+                           isOwner(userId) &&
+                           uidUnchanged() &&
+                           (!('role' in request.resource.data) || request.resource.data.role == 'customer') &&
+                           (!('email' in request.auth.token) || request.resource.data.email.lower() == request.auth.token.email.lower())
+                         )
+                       );
+
+      // Anti-privilege escalation: Non-admin owners updating their profile (name, phone, city, avatar)
+      // may NEVER modify 'role' or escalate to 'admin'. Only an existing admin may update roles.
+      allow update: if isAuthenticated() &&
+                       isValidUser(request.resource.data, userId) &&
+                       uidNotModified() &&
+                       (!('createdAt' in resource.data) || (
+                         'createdAt' in request.resource.data &&
+                         request.resource.data.createdAt == resource.data.createdAt
+                       )) && (
+                         isAdmin() || (
+                           isOwner(userId) &&
+                           ('email' in resource.data && resource.data.email is string && request.resource.data.email.lower() == resource.data.email.lower()) &&
+                           (!('provider' in resource.data) || request.resource.data.provider == resource.data.provider) &&
+                           (
+                             (!('role' in resource.data) && (!('role' in request.resource.data) || request.resource.data.role == 'customer')) ||
+                             ('role' in resource.data && 'role' in request.resource.data && request.resource.data.role == resource.data.role && request.resource.data.role == 'customer')
+                           )
+                         )
+                       );
+
+      allow delete: if isAdmin();
+    }
+
+    // 2. PRODUCTS (Public storefront catalog; no PII)
+    // SECURITY NOTE: Stock ('sizes') decrements during checkout are intentionally NOT permitted
+    // from untrusted client SDK calls to prevent inventory-zeroing DoS attacks. Move order stock
+    // decrements to a server-side Next.js API route or Cloud Function using the Firebase Admin SDK.
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAdmin();
+
+      allow create: if isAdmin() && isValidProduct(request.resource.data, productId);
+
+      // Admins have full validated update access. Signed-in customers may ONLY prepend
+      // a single validated review without altering price, stock, metadata, or prior reviews.
+      allow update: if (
+                         isAdmin() &&
+                         isValidProduct(request.resource.data, productId) &&
+                         areImmutableFieldsUnchanged(['id'])
+                       ) ||
+                       isValidCustomerReviewUpdate(productId);
+
+      allow delete: if isAdmin();
     }
 
+    // 3. STOREFRONT CONFIG (Public read for theme/shipping/banners; Admin-only write)
     match /config/{docId} {
       allow read: if true;
-      allow write: if isAdmin();
+
+      allow create: if isAdmin() &&
+                       docId == 'storefront' &&
+                       isValidStoreConfig(request.resource.data);
+
+      allow update: if isAdmin() &&
+                       docId == 'storefront' &&
+                       isValidStoreConfig(request.resource.data);
+
+      allow delete: if isAdmin();
     }
 
+    // 4. COUPONS (Public read so checkout can validate promo codes; Admin-only write)
     match /coupons/{couponId} {
       allow read: if true;
-      allow write: if isAdmin();
+
+      allow create: if isAdmin() && isValidCoupon(request.resource.data, couponId);
+
+      allow update: if isAdmin() &&
+                       isValidCoupon(request.resource.data, couponId) &&
+                       areImmutableFieldsUnchanged(['id']);
+
+      allow delete: if isAdmin();
     }
 
+    // 5. ORDERS (Contains sensitive PII: customerName, customerEmail, customerPhone, shippingAddress)
+    //
+    // SECURITY TRADE-OFF NOTE FOR GUEST ORDER TRACKING:
+    // Allowing unauthenticated reads (even `get`) on `orders/{orderId}` exposes full customer PII
+    // (street address, phone, email) to anyone who enumerates or guesses timestamp-based IDs
+    // (`ord-<epoch>`). Therefore, direct Firestore reads are restricted to Admins and the
+    // authenticated Order Owner (`userId == request.auth.uid` or verified `customerEmail`).
+    // To support unauthenticated guest order tracking (`/track-order`) safely without exposing PII,
+    // query Firestore via a server-side Next.js API route (e.g., `/api/orders/track`) using the
+    // Firebase Admin SDK that verifies `orderNumber` + email/phone and returns only redacted
+    // shipment tracking fields (status, timeline, courier AWB, city/state).
+    // Note: For signed-in users, `fetchUserOrders` should query with `where('userId', '==', uid)`
+    // rather than scanning the entire `orders` collection (Firestore rules are not filters).
     match /orders/{orderId} {
-      allow create: if true;
-      allow read: if true;
-      allow update, delete: if isAdmin();
+      allow read: if isAdmin() || isOrderOwner();
+
+      // Guests and signed-in customers may place orders with strict schema, math, and state bounds.
+      // Clients cannot forge admin fulfillment fields ('shipped'/'delivered', non-empty trackingNumber)
+      // or attribute an order to another user's UID.
+      allow create: if isValidOrder(request.resource.data, orderId) && (
+                         isAdmin() || (
+                           request.resource.data.status in ['processing', 'confirmed'] &&
+                           request.resource.data.paymentStatus in ['paid', 'pending_cod'] &&
+                           (!('trackingNumber' in request.resource.data) || request.resource.data.trackingNumber == '') &&
+                           (
+                             (isAuthenticated() && request.resource.data.userId == request.auth.uid) ||
+                             (!isAuthenticated() && request.resource.data.userId == 'guest')
+                           )
+                         )
+                       );
+
+      // Fulfillment updates (status transitions, courier trackingNumber) are strictly Admin-only.
+      allow update: if isAdmin() &&
+                       isValidOrder(request.resource.data, orderId) &&
+                       areImmutableFieldsUnchanged(['id', 'orderNumber', 'userId', 'createdAt']);
+
+      allow delete: if isAdmin();
     }
 
-    match /users/{userId} {
-      allow read, write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
-    }
-
+    // 6. INQUIRIES (Public submission with strict validation & size limits; Admin-only read/manage)
     match /inquiries/{inquiryId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow create: if isValidInquiry(request.resource.data, inquiryId);
+
+      allow read: if isAdmin();
+
+      allow update: if isAdmin() &&
+                       isValidInquiry(request.resource.data, inquiryId) &&
+                       areImmutableFieldsUnchanged(['id', 'createdAt']);
+
+      allow delete: if isAdmin();
     }
 
+    // 7. NEWSLETTER (Public subscription with email/ID binding & size limits; Admin-only read/manage)
     match /newsletter/{subId} {
-      allow create: if true;
-      allow read, delete: if isAdmin();
+      allow create: if isValidNewsletterSub(request.resource.data, subId);
+
+      allow read: if isAdmin();
+
+      allow update: if isAdmin() &&
+                       isValidNewsletterSub(request.resource.data, subId) &&
+                       areImmutableFieldsUnchanged(['email', 'createdAt']);
+
+      allow delete: if isAdmin();
+    }
+
+    // ===============================================================
+    // Default Deny-All Fallback
+    // ===============================================================
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

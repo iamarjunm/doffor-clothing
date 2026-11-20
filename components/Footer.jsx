@@ -10,7 +10,8 @@ export default function Footer() {
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [joinedCode, setJoinedCode] = useState('');
-  const { pushToast } = useStore();
+  const { config, pushToast } = useStore();
+  const footerCfg = config.footer || {};
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -34,11 +35,11 @@ export default function Footer() {
         {/* Brand & Newsletter */}
         <div className="lg:col-span-5 space-y-6">
           <Link href="/" className="inline-block font-display font-bold text-2xl tracking-[0.34em] uppercase">
-            DOFFOR
+            {config.brandWordmark || 'DOFFOR'}
           </Link>
           <p className="text-sm text-neutral-400 leading-relaxed max-w-sm">
-            Independent Indian streetwear label focused on 240–280 GSM heavyweight jersey
-            silhouettes, archival graphics, and enduring everyday construction.
+            {footerCfg.bio ||
+              'Independent Indian streetwear label focused on 240–280 GSM heavyweight jersey silhouettes, archival graphics, and enduring everyday construction.'}
           </p>
 
           <form onSubmit={handleSubscribe} className="max-w-sm space-y-2.5 pt-1">
@@ -96,7 +97,6 @@ export default function Footer() {
             <li><Link href="/community" className="hover:text-white transition-colors">Community & Collabs</Link></li>
             <li><Link href="/track-order" className="hover:text-white transition-colors">Track Order</Link></li>
             <li><Link href="/auth" className="hover:text-white transition-colors">Account</Link></li>
-            <li><Link href="/admin" className="hover:text-white transition-colors">Admin Portal</Link></li>
           </ul>
         </div>
 
@@ -114,19 +114,29 @@ export default function Footer() {
           </ul>
 
           <p className="text-[11px] text-neutral-500 pt-4">
-            Payments processed securely via Razorpay (UPI, Cards, Netbanking & COD).
+            Payments processed securely via Razorpay (UPI, Cards, Netbanking{config.codEnabled !== false ? ' & COD' : ''}).
           </p>
         </div>
       </div>
 
       <div className="border-t border-white/10">
         <div className="max-w-[1440px] mx-auto px-6 sm:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
-          <p>© {new Date().getFullYear()} DOFFOR CLOTHING. ALL RIGHTS RESERVED.</p>
+          <p>© {new Date().getFullYear()} {footerCfg.copyright || 'DOFFOR CLOTHING. ALL RIGHTS RESERVED.'}</p>
           <div className="flex items-center gap-6">
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+            <a
+              href={footerCfg.instagramUrl || 'https://instagram.com'}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-white transition-colors"
+            >
               Instagram
             </a>
-            <a href="https://youtube.com" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+            <a
+              href={footerCfg.youtubeUrl || 'https://youtube.com'}
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-white transition-colors"
+            >
               YouTube
             </a>
             <span>India (INR ₹)</span>

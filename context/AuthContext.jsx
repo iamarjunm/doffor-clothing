@@ -89,18 +89,39 @@ export function AuthProvider({ children }) {
     if (isFirebaseConfigured && auth && googleProvider) {
       const cred = await signInWithPopup(auth, googleProvider);
       const fbUser = cred.user;
-      const profile = {
-        uid: fbUser.uid,
-        name: fbUser.displayName || fbUser.email.split('@')[0],
-        email: fbUser.email,
-        avatar: fbUser.photoURL || '',
-        provider: 'google',
-        role: isEmailAdmin(fbUser.email) ? 'admin' : 'customer',
-        createdAt: new Date().toISOString(),
-      };
+      let existing = null;
+      if (db) {
+        try {
+          const snap = await getDoc(doc(db, 'users', fbUser.uid));
+          if (snap.exists()) existing = snap.data();
+        } catch {
+          // new user
+        }
+      }
+
+      const profile = existing
+        ? {
+            ...existing,
+            uid: fbUser.uid,
+            name: existing.name || fbUser.displayName || fbUser.email.split('@')[0],
+            avatar: fbUser.photoURL || existing.avatar || '',
+          }
+        : {
+            uid: fbUser.uid,
+            name: fbUser.displayName || fbUser.email.split('@')[0],
+            email: fbUser.email,
+            avatar: fbUser.photoURL || '',
+            provider: 'google',
+            role: 'customer',
+            createdAt: new Date().toISOString(),
+          };
+
       await upsertUserRecord(profile);
-      setUser(profile);
-      return profile;
+      const effectiveRole =
+        existing?.role === 'admin' || isEmailAdmin(fbUser.email) ? 'admin' : 'customer';
+      const hydratedUser = { ...profile, role: effectiveRole };
+      setUser(hydratedUser);
+      return hydratedUser;
     }
 
     // Zero-config Google chooser fallback

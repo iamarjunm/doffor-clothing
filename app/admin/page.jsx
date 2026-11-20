@@ -48,6 +48,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
+import AdminSiteCustomizer from '../../components/AdminSiteCustomizer';
+import { DofforLoader } from '../../components/DofforLoader';
 import {
   fetchProducts,
   saveProduct,
@@ -914,130 +916,60 @@ export default function AdminPage() {
   // LOADING GATE
   // ======================================================
   if (authLoading) {
-    return (
-      <div className="min-h-screen bg-obsidian flex items-center justify-center px-6">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-2 border-acid border-t-transparent rounded-full animate-spin" />
-          <p className="font-mono text-xs uppercase tracking-[0.25em] text-ash">
-            VERIFYING ADMIN CLEARANCE...
-          </p>
-        </div>
-      </div>
-    );
+    return <DofforLoader label="Verifying Admin Access" fullScreen />;
   }
 
   // ======================================================
-  // 1. ROLE GATE WITH 1-CLICK DEMO ADMIN UNLOCK
+  // 1. STRICT ROLE-BASED ACCESS GATE (NO SELF-SERVICE LOGIN)
   // ======================================================
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-obsidian grain-overlay flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-xl card-dark border border-white/10 p-8 md:p-10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-crimson via-acid to-crimson" />
-
-          <div className="flex items-center justify-between mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-crimson/15 border border-crimson/30 text-crimson font-mono text-[11px] uppercase tracking-widest">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              RESTRICTED ACCESS // 403
-            </div>
-            <span
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm font-mono text-[10px] uppercase tracking-wider border ${
-                backendMode === 'firebase'
-                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                  : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
-              }`}
-            >
-              <span
-                className={`w-1.5 h-1.5 rounded-full ${
-                  backendMode === 'firebase' ? 'bg-emerald-400' : 'bg-amber-400'
-                }`}
-              />
-              {backendMode === 'firebase' ? 'FIREBASE LIVE' : 'LOCAL PREVIEW'}
+      <div className="min-h-[78vh] flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-lg card-dark p-8 sm:p-10 space-y-6">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-red-700">
+              <ShieldAlert className="w-4 h-4" />
+              Access Restricted — 403
             </span>
+            <Lock className="w-4 h-4 text-neutral-400" />
           </div>
 
-          <div className="w-14 h-14 rounded-sm bg-surface border border-white/10 flex items-center justify-center mb-6">
-            <Lock className="w-7 h-7 text-acid" />
+          <div className="space-y-2">
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-bone">
+              Administrator Access Only
+            </h1>
+            <p className="text-sm text-ash leading-relaxed">
+              The Doffor Admin Panel is accessible only to accounts assigned the{' '}
+              <strong className="text-bone">admin</strong> role. Sign in normally with your
+              authorized account and open Admin Panel from your profile menu.
+            </p>
           </div>
-
-          <h1 className="font-display text-3xl md:text-4xl font-extrabold uppercase tracking-tight text-bone mb-3">
-            DOFFOR COMMAND CENTER
-          </h1>
-          <p className="text-sm text-ash leading-relaxed mb-6">
-            This operations console manages live Drop 04 inventory, Razorpay order
-            fulfillment, Firebase Storage assets, and storefront pricing. Admin
-            clearance is required to enter.
-          </p>
 
           {user && (
-            <div className="mb-6 p-3.5 rounded-sm bg-obsidian border border-white/10 flex items-center justify-between">
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-ash">
-                  CURRENTLY SIGNED IN AS
+            <div className="p-3.5 bg-white border border-black/10 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-neutral-500">
+                  Signed in as
                 </p>
-                <p className="text-sm font-medium text-bone mt-0.5">
-                  {user.name} <span className="text-ash">({user.email})</span>
+                <p className="text-xs font-medium text-bone truncate mt-0.5">
+                  {user.name} ({user.email})
                 </p>
               </div>
-              <span className="px-2.5 py-1 rounded-sm bg-white/5 border border-white/10 font-mono text-[10px] uppercase text-ash">
-                ROLE: {user.role || 'customer'}
+              <span className="px-2.5 py-1 bg-neutral-100 text-[10px] uppercase tracking-wider text-neutral-600 shrink-0">
+                {user.role || 'customer'}
               </span>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 mb-7">
-            {!isFirebaseConfigured && (
-              <button
-                type="button"
-                onClick={handleEnterDemoAdmin}
-                disabled={unlockingDemo}
-                className="btn-acid flex-1"
-              >
-                <Unlock className="w-4 h-4" />
-                {unlockingDemo ? 'UNLOCKING CONSOLE...' : 'ENTER DEMO ADMIN MODE'}
-              </button>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            {!user && (
+              <Link href="/auth" className="btn-acid flex-1">
+                Sign In <ArrowRight className="w-4 h-4" />
+              </Link>
             )}
-            <Link
-              href="/auth"
-              className={isFirebaseConfigured ? 'btn-acid flex-1' : 'btn-outline flex-1'}
-            >
-              SIGN IN AT /AUTH
-              <ArrowRight className="w-4 h-4" />
+            <Link href="/" className={user ? 'btn-acid flex-1' : 'btn-outline flex-1'}>
+              Return to Store
             </Link>
-          </div>
-
-          <div className="p-4 rounded-sm bg-obsidian/90 border border-white/10 space-y-2">
-            <p className="font-mono text-[11px] uppercase tracking-wider text-acid flex items-center gap-2">
-              <Database className="w-3.5 h-3.5" />
-              LIVE FIREBASE ADMIN CONFIGURATION
-            </p>
-            <p className="text-xs text-ash leading-relaxed">
-              When connected to Firebase, grant admin privileges by adding your
-              Google or Email account to{' '}
-              <code className="px-1.5 py-0.5 rounded bg-surface text-bone font-mono text-[11px]">
-                NEXT_PUBLIC_ADMIN_EMAILS
-              </code>{' '}
-              in <code className="text-bone font-mono text-[11px]">.env.local</code>{' '}
-              (comma-separated), or by setting{' '}
-              <code className="px-1.5 py-0.5 rounded bg-surface text-bone font-mono text-[11px]">
-                role: &quot;admin&quot;
-              </code>{' '}
-              on your document inside Firestore{' '}
-              <code className="text-bone font-mono text-[11px]">users/&#123;uid&#125;</code>.
-            </p>
-            {!isFirebaseConfigured && (
-              <p className="text-[11px] font-mono text-ash/80 pt-1">
-                Demo Credentials: <span className="text-bone">admin@doffor.in</span> /{' '}
-                <span className="text-bone">DofforAdmin@2026</span>
-              </p>
-            )}
-          </div>
-
-          <div className="mt-6 flex justify-between items-center text-xs font-mono text-ash">
-            <Link href="/" className="hover:text-acid transition-colors">
-              ← Return to Storefront
-            </Link>
-            <span>DOFFOR CLOTHING // OPS v4.0</span>
           </div>
         </div>
       </div>
@@ -1053,6 +985,13 @@ export default function AdminPage() {
       label: 'Overview',
       icon: LayoutDashboard,
       badge: null,
+    },
+    {
+      id: 'customizer',
+      label: 'Site Customizer',
+      icon: Palette,
+      badge: 'CMS',
+      badgeTone: 'acid',
     },
     {
       id: 'products',
@@ -1248,6 +1187,17 @@ export default function AdminPage() {
 
         {/* Main Tab Content */}
         <main className="flex-1 min-w-0 space-y-6">
+          {/* ================================================ */}
+          {/* TAB 0: VISUAL SITE CUSTOMIZER (CMS)              */}
+          {/* ================================================ */}
+          {activeTab === 'customizer' && (
+            <AdminSiteCustomizer
+              config={config}
+              refreshStore={refreshStore}
+              pushToast={pushToast}
+            />
+          )}
+
           {/* ================================================ */}
           {/* TAB 1: OVERVIEW                                  */}
           {/* ================================================ */}

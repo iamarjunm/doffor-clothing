@@ -8,7 +8,6 @@ import { useStore } from '../context/StoreContext';
 const PREVIEW_GOOGLE_ACCOUNTS = [
   { name: 'Arjun Sharma', email: 'arjun.sharma@gmail.com', city: 'New Delhi' },
   { name: 'Rhea Kapoor', email: 'rhea.kapoor@gmail.com', city: 'Mumbai' },
-  { name: 'Doffor Admin', email: 'admin@doffor.in', city: 'Bengaluru', badge: 'ADMIN' },
 ];
 
 export default function GoogleSignInButton({ mode = 'signin', onSuccess }) {
@@ -59,10 +58,10 @@ export default function GoogleSignInButton({ mode = 'signin', onSuccess }) {
         type="button"
         disabled={loading}
         onClick={handleClick}
-        className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-sm bg-white text-obsidian font-sans font-semibold text-sm hover:bg-bone transition-all active:scale-[0.99] shadow-md disabled:opacity-60"
+        className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-black/20 text-[#0B0B0C] font-sans font-medium text-sm hover:bg-neutral-50 hover:border-black transition-all active:scale-[0.99] disabled:opacity-60"
       >
         {loading ? (
-          <Loader2 className="w-5 h-5 animate-spin text-obsidian" />
+          <Loader2 className="w-5 h-5 animate-spin text-[#0B0B0C]" />
         ) : (
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -76,7 +75,7 @@ export default function GoogleSignInButton({ mode = 'signin', onSuccess }) {
 
       {modalOpen && (
         <div className="fixed inset-0 z-[95] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setModalOpen(false)} />
+          <div className="fixed inset-0 bg-black/55 backdrop-blur-[2px]" onClick={() => setModalOpen(false)} />
 
           <div className="relative z-10 w-full max-w-md bg-white text-zinc-900 rounded-md shadow-2xl overflow-hidden animate-fade-up">
             <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
@@ -110,21 +109,15 @@ export default function GoogleSignInButton({ mode = 'signin', onSuccess }) {
                     onClick={() => handlePreviewAccount(acc)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-50 transition-colors text-left"
                   >
-                    <div className="w-9 h-9 rounded-full bg-zinc-900 text-acid font-bold text-sm flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-zinc-900 text-white font-semibold text-sm flex items-center justify-center shrink-0">
                       {acc.name.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-zinc-900 truncate">{acc.name}</p>
                       <p className="text-xs text-zinc-500 truncate">{acc.email}</p>
                     </div>
-                    <span
-                      className={`text-[10px] font-mono px-2 py-0.5 rounded ${
-                        acc.badge === 'ADMIN'
-                          ? 'bg-zinc-900 text-acid font-bold'
-                          : 'bg-zinc-100 text-zinc-700'
-                      }`}
-                    >
-                      {acc.badge || acc.city}
+                    <span className="text-[10px] bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded">
+                      {acc.city}
                     </span>
                   </button>
                 ))}
@@ -139,14 +132,14 @@ export default function GoogleSignInButton({ mode = 'signin', onSuccess }) {
                 }}
                 className="space-y-2.5 pt-2 border-t border-zinc-200"
               >
-                <p className="text-xs font-semibold text-zinc-700">Or continue with any Google email</p>
+                <p className="text-xs font-semibold text-zinc-700">Use another Google account</p>
                 <input
                   type="text"
                   required
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   placeholder="Full Name"
-                  className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
+                  className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
                 />
                 <input
                   type="email"
@@ -154,22 +147,17 @@ export default function GoogleSignInButton({ mode = 'signin', onSuccess }) {
                   value={customEmail}
                   onChange={(e) => setCustomEmail(e.target.value)}
                   placeholder="you@gmail.com"
-                  className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-600"
+                  className="w-full border border-zinc-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-black"
                 />
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-[#0B0B0C] hover:bg-neutral-800 text-white font-semibold text-sm rounded transition-colors flex items-center justify-center gap-2"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  Continue with Google
+                  Continue
                 </button>
               </form>
-
-              <p className="text-[11px] text-zinc-500 leading-relaxed">
-                Preview Mode: Add your <code className="bg-zinc-100 px-1 rounded">NEXT_PUBLIC_FIREBASE_*</code> keys in{' '}
-                <code className="bg-zinc-100 px-1 rounded">.env.local</code> to switch automatically to live Firebase Google OAuth popup.
-              </p>
             </div>
           </div>
         </div>

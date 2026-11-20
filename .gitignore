@@ -6,4 +6,5 @@ out/
 .env.*.local
 .DS_Store
 *.log
+firebase-debug.log
 .vercel

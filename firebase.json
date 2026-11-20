@@ -1,0 +1,21 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "auth": {
+    "providers": {
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Doffor Clothing",
+        "supportEmail": "arjunhero38@gmail.com",
+        "authorizedRedirectUris": [
+          "https://doffor-clothing.firebaseapp.com/__/auth/handler",
+          "http://localhost:3000"
+        ]
+      }
+    }
+  }
+}
