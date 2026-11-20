@@ -60,7 +60,7 @@
   }
 }
 
-@layer utilities {
+@layer components {
   .glass-dark {
     background: color-mix(in srgb, var(--df-canvas) 94%, transparent);
     backdrop-filter: blur(16px);
