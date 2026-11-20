@@ -133,6 +133,15 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isBootstrapOwner() {
+      return isAuthenticated() &&
+             ('email' in request.auth.token) &&
+             request.auth.token.email is string &&
+             request.auth.token.email.lower() == 'arjunhero38@gmail.com' &&
+             ('email_verified' in request.auth.token) &&
+             request.auth.token.email_verified == true;
+    }
+
     function hasAdminRoleDoc() {
       let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
       return exists(userPath) &&
@@ -140,12 +149,14 @@ service cloud.firestore {
              get(userPath).data.role == 'admin';
     }
 
-    // Authority is derived ONLY from trusted Auth custom claims or an existing
-    // persisted admin user document — NEVER from client-supplied request.resource.data.
+    // Authority is derived ONLY from trusted Auth custom claims, verified bootstrap
+    // owner email, or an existing persisted admin user document — NEVER from
+    // client-supplied request.resource.data.
     function isAdmin() {
       return isAuthenticated() && (
         ('role' in request.auth.token && request.auth.token.role == 'admin') ||
         ('admin' in request.auth.token && request.auth.token.admin == true) ||
+        isBootstrapOwner() ||
         hasAdminRoleDoc()
       );
     }
