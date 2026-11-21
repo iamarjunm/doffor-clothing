@@ -356,7 +356,7 @@ export default function ProductDetailPage() {
                 {product.gsm} GSM • {product.fit}
               </span>
 
-              <span className="hidden sm:inline-block absolute bottom-3.5 right-3.5 px-2.5 py-1 rounded-sm bg-obsidian/80 backdrop-blur-md border border-white/10 font-mono text-[10px] text-ash pointer-events-none">
+              <span className="hidden sm:inline-block absolute bottom-3.5 right-3.5 px-2.5 py-1 rounded-sm bg-white/90 backdrop-blur-md border border-[#0B0B0C]/15 font-mono text-[10px] text-[#0B0B0C]/80 pointer-events-none">
                 Hover to Zoom
               </span>
             </div>
@@ -374,7 +374,7 @@ export default function ProductDetailPage() {
                       className={`aspect-[3/4] rounded-sm overflow-hidden border transition-all bg-surface ${
                         active
                           ? 'border-acid ring-1 ring-acid/60'
-                          : 'border-white/10 opacity-70 hover:opacity-100 hover:border-white/30'
+                          : 'border-[#0B0B0C]/15 opacity-75 hover:opacity-100 hover:border-[#0B0B0C]/50'
                       }`}
                     >
                       <img
@@ -415,7 +415,7 @@ export default function ProductDetailPage() {
                     ({product.reviewCount || product.reviews?.length || 0} reviews)
                   </span>
                 </a>
-                <span className="text-white/20">|</span>
+                <span className="text-[#0B0B0C]/20">|</span>
                 <span className="font-mono text-xs text-ash">
                   Total Batch Stock:{' '}
                   <strong className="text-bone">{totalStock} pcs</strong>
@@ -463,11 +463,11 @@ export default function ProductDetailPage() {
                       className={`flex items-center gap-2 px-3 py-2 rounded-sm border transition-all ${
                         active
                           ? 'border-acid bg-acid/10 text-bone'
-                          : 'border-white/15 bg-charcoal text-ash hover:border-white/35 hover:text-bone'
+                          : 'border-[#0B0B0C]/15 bg-charcoal text-ash hover:border-[#0B0B0C]/50 hover:text-bone'
                       }`}
                     >
                       <span
-                        className="w-4 h-4 rounded-full border border-white/30 shrink-0"
+                        className="w-4 h-4 rounded-full border border-[#0B0B0C]/25 shrink-0"
                         style={{ backgroundColor: col.hex }}
                       />
                       <span className="font-mono text-xs">{col.name}</span>
@@ -485,15 +485,15 @@ export default function ProductDetailPage() {
                     Select Size
                   </span>
                   {selectedSizeStock <= 0 ? (
-                    <span className="px-2 py-0.5 rounded-sm bg-crimson/15 border border-crimson/30 font-mono text-[10px] font-bold text-crimson uppercase">
+                    <span className="px-2 py-0.5 rounded-sm bg-red-50 border border-red-300 font-mono text-[10px] font-bold text-crimson uppercase">
                       Sold Out
                     </span>
                   ) : selectedSizeStock <= 5 ? (
-                    <span className="px-2 py-0.5 rounded-sm bg-amber-500/15 border border-amber-500/40 font-mono text-[10px] font-bold text-amber-400 uppercase">
+                    <span className="px-2 py-0.5 rounded-sm bg-amber-50 border border-amber-300 font-mono text-[10px] font-bold text-amber-800 uppercase">
                       Only {selectedSizeStock} left
                     </span>
                   ) : (
-                    <span className="px-2 py-0.5 rounded-sm bg-emerald-500/15 border border-emerald-500/30 font-mono text-[10px] font-bold text-emerald-400 uppercase">
+                    <span className="px-2 py-0.5 rounded-sm bg-emerald-50 border border-emerald-300 font-mono text-[10px] font-bold text-emerald-800 uppercase">
                       In Stock ({selectedSizeStock} left)
                     </span>
                   )}
@@ -522,16 +522,16 @@ export default function ProductDetailPage() {
                       onClick={() => handleSelectSize(sz)}
                       className={`relative py-3 rounded-sm font-mono text-sm font-bold border transition-all ${
                         out
-                          ? 'border-white/5 bg-charcoal/40 text-ash/30 line-through cursor-not-allowed'
+                          ? 'border-[#0B0B0C]/10 bg-charcoal/60 text-ash/45 line-through cursor-not-allowed'
                           : active
                           ? 'bg-acid text-obsidian border-acid'
-                          : 'bg-charcoal text-bone border-white/15 hover:border-acid/60'
+                          : 'bg-charcoal text-bone border-[#0B0B0C]/15 hover:border-acid'
                       }`}
                     >
                       {sz}
                       {low && !active && (
                         <span
-                          className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-400"
+                          className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-600"
                           title={`Only ${stock} left`}
                         />
                       )}
@@ -600,7 +600,7 @@ export default function ProductDetailPage() {
                 onClick={handleBuyNow}
                 className="btn-outline w-full disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <Zap className="w-4 h-4 text-acid" />
+                <Zap className="w-4 h-4" />
                 Buy Now — Instant Razorpay UPI / Card
               </button>
             </div>
@@ -629,7 +629,7 @@ export default function ProductDetailPage() {
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-sm bg-white/10 hover:bg-acid hover:text-obsidian font-mono text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
+                  className="px-4 py-2 rounded-sm bg-[#0B0B0C] text-white hover:bg-[#0B0B0C]/85 font-mono text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
                 >
                   Check
                 </button>
@@ -642,8 +642,8 @@ export default function ProductDetailPage() {
               )}
 
               {pincodeResult && (
-                <div className="p-3 rounded-sm bg-obsidian border border-emerald-500/30 space-y-1.5 font-mono text-xs">
-                  <p className="flex items-center gap-1.5 text-emerald-400 font-bold">
+                <div className="p-3 rounded-sm bg-emerald-50/70 border border-emerald-300 space-y-1.5 font-mono text-xs">
+                  <p className="flex items-center gap-1.5 text-emerald-800 font-bold">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     Estimated Delivery: {pincodeResult.etaRange}
                   </p>
@@ -778,7 +778,7 @@ export default function ProductDetailPage() {
                           <span className="text-bone/90">{opt}</span>
                           <span className="text-ash">{pct}%</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-obsidian overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-[#0B0B0C]/10 overflow-hidden">
                           <div
                             className="h-full bg-acid rounded-full transition-all"
                             style={{ width: `${pct}%` }}
@@ -924,7 +924,7 @@ export default function ProductDetailPage() {
                             {rev.userName}
                           </span>
                           {rev.verified && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-emerald-500/15 border border-emerald-500/30 font-mono text-[10px] text-emerald-400">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm bg-emerald-50 border border-emerald-300 font-mono text-[10px] font-semibold text-emerald-800">
                               <CheckCircle2 className="w-3 h-3" /> Verified
                             </span>
                           )}

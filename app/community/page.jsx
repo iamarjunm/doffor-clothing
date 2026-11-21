@@ -138,37 +138,43 @@ export default function CommunityPage() {
 
   return (
     <div className="bg-obsidian text-bone min-h-screen">
-      {/* Hero */}
-      <section className="relative border-b border-white/[0.08] overflow-hidden">
+      {/* Hero — Dark Editorial Campaign Banner for Crisp Contrast */}
+      <section className="relative bg-[#0B0B0C] text-white border-b border-[#0B0B0C]/15 overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/images/lookbook-campus-2.jpg"
             alt="Doffor Community & Culture"
-            className="w-full h-full object-cover opacity-25"
+            className="w-full h-full object-cover opacity-45"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-obsidian/70 via-obsidian/85 to-obsidian" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0B0B0C]/60 via-[#0B0B0C]/75 to-[#0B0B0C]/95" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
           <div className="max-w-3xl space-y-5">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-acid/15 border border-acid/40 text-acid font-mono text-[11px] font-bold uppercase tracking-[0.22em]">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm bg-white/10 backdrop-blur-md border border-white/25 text-white font-mono text-[11px] font-bold uppercase tracking-[0.22em]">
               <Flame className="w-3.5 h-3.5" /> Doffor Culture // Collective & Perks
             </span>
-            <h1 className="font-condensed text-5xl sm:text-7xl uppercase leading-[0.9] tracking-tight">
+            <h1 className="font-condensed text-5xl sm:text-7xl uppercase leading-[0.9] tracking-tight text-white">
               BUILT FOR CREWS, CREATORS &amp;{' '}
-              <span className="text-acid">THE UNDERGROUND</span>
+              <span className="text-white/85">THE UNDERGROUND</span>
             </h1>
-            <p className="text-base sm:text-lg text-bone/80 leading-relaxed">
+            <p className="text-base sm:text-lg text-white/80 leading-relaxed">
               Doffor isn&apos;t a billboard—it&apos;s a uniform worn at indie gigs, design labs,
               late-night gym sessions, and cultural fests across India. Claim instant community codes,
               join the Doffor Collective, or commission custom 240–280 GSM pieces for your event or
               brand.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <a href="#perks" className="btn-acid">
+              <a
+                href="#perks"
+                className="inline-flex items-center justify-center gap-2 bg-white text-[#0B0B0C] hover:bg-white/90 font-medium uppercase tracking-[0.16em] text-[11px] px-7 py-3.5 transition-all"
+              >
                 Unlock Perk Codes
               </a>
-              <a href="#collabs" className="btn-outline">
+              <a
+                href="#collabs"
+                className="inline-flex items-center justify-center gap-2 border border-white/40 text-white hover:bg-white hover:text-[#0B0B0C] font-medium uppercase tracking-[0.16em] text-[11px] px-7 py-3.5 transition-all"
+              >
                 Custom Bulk Collabs <ArrowRight className="w-4 h-4" />
               </a>
             </div>
@@ -218,7 +224,7 @@ export default function CommunityPage() {
                     <button
                       type="button"
                       onClick={() => handleCopyCode(perk.code)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-white/[0.06] hover:bg-acid hover:text-obsidian font-mono text-[11px] font-bold uppercase tracking-wider transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-sm bg-[#ECEAE4] border border-[#0B0B0C]/15 text-[#0B0B0C] hover:bg-[#0B0B0C] hover:text-white font-mono text-[11px] font-bold uppercase tracking-wider transition-colors"
                     >
                       {isCopied ? (
                         <>

@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
+import DofforLoader from '../../components/DofforLoader';
 import { findOrderByNumberOrId } from '../../lib/dataService';
 import { formatINR, formatDate, ORDER_STATUS_META } from '../../lib/format';
 
@@ -85,14 +86,14 @@ function TrackOrderContent() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 space-y-10">
         {/* Hero Search Box */}
         <div className="text-center max-w-2xl mx-auto space-y-4">
-          <p className="font-mono text-xs uppercase tracking-[0.25em] text-acid">
+          <p className="font-mono text-xs uppercase tracking-[0.25em] text-ash">
             Pan-India Air Express Tracking
           </p>
           <h1 className="font-display font-extrabold text-4xl sm:text-5xl uppercase tracking-tight">
             Track Your Drop
           </h1>
           <p className="text-sm text-ash">
-            Enter your Doffor Order Number (e.g. <span className="font-mono text-bone">DFR-2026-8412</span>) to see live warehouse status, BlueDart / Delhivery AWB, and garment breakdown.
+            Enter your Doffor Order Number (e.g. <span className="font-mono text-bone font-semibold">DFR-2026-8412</span>) to see live warehouse status, BlueDart / Delhivery AWB, and garment breakdown.
           </p>
 
           <form onSubmit={handleSubmit} className="pt-2 flex flex-col sm:flex-row gap-3">
@@ -135,31 +136,24 @@ function TrackOrderContent() {
                   setQuery(sample);
                   performLookup(sample);
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm bg-charcoal border border-white/10 hover:border-acid font-mono text-xs text-bone hover:text-acid transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-sm bg-charcoal border border-black/15 hover:border-bone font-mono text-xs text-bone transition-colors"
               >
-                <Sparkles className="w-3 h-3 text-acid" /> {sample}
+                <Sparkles className="w-3 h-3 text-bone" /> {sample}
               </button>
             ))}
           </div>
         </div>
 
         {/* Loading State */}
-        {loading && (
-          <div className="py-12 text-center">
-            <Loader2 className="w-8 h-8 text-acid animate-spin mx-auto" />
-            <p className="font-mono text-xs text-ash mt-2 uppercase tracking-widest">
-              Querying Dispatch Hub...
-            </p>
-          </div>
-        )}
+        {loading && <DofforLoader label="Querying Dispatch Hub" />}
 
         {/* Not Found State */}
         {!loading && searched && !order && (
-          <div className="card-dark max-w-xl mx-auto p-8 text-center space-y-3 border-crimson/35">
+          <div className="max-w-xl mx-auto p-8 text-center space-y-3 rounded-sm bg-red-50/70 border border-red-200">
             <AlertCircle className="w-9 h-9 text-crimson mx-auto" />
-            <h2 className="font-display font-bold text-xl uppercase">Order Not Found</h2>
+            <h2 className="font-display font-bold text-xl uppercase text-bone">Order Not Found</h2>
             <p className="text-sm text-ash">
-              No shipment matched <span className="font-mono text-bone">{query}</span>. Please check your confirmation email or try one of the sample order numbers above.
+              No shipment matched <span className="font-mono text-bone font-semibold">{query}</span>. Please check your confirmation email or try one of the sample order numbers above.
             </p>
           </div>
         )}
@@ -169,7 +163,7 @@ function TrackOrderContent() {
           <div className="space-y-6 animate-fade-up">
             {/* Summary Header Card */}
             <div className="card-dark p-6 sm:p-8 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-black/10">
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
                     <h2 className="font-mono font-bold text-2xl text-bone">
@@ -198,7 +192,7 @@ function TrackOrderContent() {
 
               {/* 5-Step Horizontal Shipping Timeline */}
               {order.status === 'cancelled' ? (
-                <div className="p-4 rounded-sm bg-crimson/15 border border-crimson/40 flex items-center gap-3 text-sm">
+                <div className="p-4 rounded-sm bg-red-50 border border-red-200 flex items-center gap-3 text-sm text-red-900">
                   <AlertCircle className="w-5 h-5 text-crimson shrink-0" />
                   <span>
                     This order has been cancelled. If you paid online via Razorpay, your refund is processed within 3–5 business days.
@@ -207,9 +201,9 @@ function TrackOrderContent() {
               ) : (
                 <div className="py-2 overflow-x-auto">
                   <div className="min-w-[540px] relative grid grid-cols-5 gap-3">
-                    <div className="absolute top-5 left-[10%] right-[10%] h-0.5 bg-white/10" />
+                    <div className="absolute top-5 left-[10%] right-[10%] h-0.5 bg-black/10" />
                     <div
-                      className="absolute top-5 left-[10%] h-0.5 bg-acid transition-all duration-500"
+                      className="absolute top-5 left-[10%] h-0.5 bg-bone transition-all duration-500"
                       style={{ width: `${Math.max(0, Math.min(4, currentStep - 1)) * 20}%` }}
                     />
                     {TIMELINE_STEPS.map((st) => {
@@ -224,9 +218,9 @@ function TrackOrderContent() {
                           <div
                             className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all ${
                               done
-                                ? 'bg-acid text-obsidian border-acid'
-                                : 'bg-obsidian text-ash border-white/15'
-                            } ${isCurrent ? 'ring-4 ring-acid/25' : ''}`}
+                                ? 'bg-bone text-obsidian border-bone'
+                                : 'bg-white text-ash border-black/15'
+                            } ${isCurrent ? 'ring-4 ring-black/15' : ''}`}
                           >
                             <Icon className="w-4 h-4" />
                           </div>
@@ -246,24 +240,28 @@ function TrackOrderContent() {
               )}
 
               {/* Courier AWB & Destination */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-white/[0.08]">
-                <div className="p-4 rounded-sm bg-obsidian border border-white/[0.07] space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-black/10">
+                <div className="p-4 rounded-sm bg-white border border-black/10 space-y-2">
                   <p className="font-mono text-[11px] uppercase tracking-widest text-ash flex items-center gap-1.5">
-                    <Truck className="w-3.5 h-3.5 text-acid" /> Courier Tracking ID (AWB)
+                    <Truck className="w-3.5 h-3.5 text-bone" /> Courier Tracking ID (AWB)
                   </p>
                   {order.trackingNumber ? (
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono font-bold text-base text-acid">
+                      <span className="font-mono font-bold text-base text-bone">
                         {order.trackingNumber}
                       </span>
                       <button
                         type="button"
                         onClick={handleCopyTracking}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-sm bg-surface border border-white/10 hover:border-acid font-mono text-[11px] text-bone transition-colors"
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-sm border font-mono text-[11px] transition-colors ${
+                          copied
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800 font-semibold'
+                            : 'bg-surface border-black/10 hover:border-bone text-bone'
+                        }`}
                       >
                         {copied ? (
                           <>
-                            <Check className="w-3 h-3 text-acid" /> Copied
+                            <Check className="w-3 h-3 text-emerald-800" /> Copied
                           </>
                         ) : (
                           <>
@@ -277,18 +275,26 @@ function TrackOrderContent() {
                       Awaiting courier handover — your BlueDart / Delhivery tracking ID will appear here once packed.
                     </p>
                   )}
-                  <div className="pt-1 flex items-center gap-2 font-mono text-[11px] text-ash">
-                    <ShieldCheck className="w-3.5 h-3.5 text-acid" />
-                    <span className="uppercase">
+                  <div className="pt-1 flex items-center gap-2 font-mono text-[11px]">
+                    <ShieldCheck
+                      className={`w-3.5 h-3.5 ${
+                        order.paymentStatus === 'paid' ? 'text-emerald-800' : 'text-amber-800'
+                      }`}
+                    />
+                    <span
+                      className={`uppercase font-semibold ${
+                        order.paymentStatus === 'paid' ? 'text-emerald-800' : 'text-amber-800'
+                      }`}
+                    >
                       {order.paymentStatus === 'paid' ? 'Prepaid' : 'Cash on Delivery'} •{' '}
                       {order.paymentMethod}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-sm bg-obsidian border border-white/[0.07] space-y-1.5">
+                <div className="p-4 rounded-sm bg-white border border-black/10 space-y-1.5">
                   <p className="font-mono text-[11px] uppercase tracking-widest text-ash flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-acid" /> Shipping Destination
+                    <MapPin className="w-3.5 h-3.5 text-bone" /> Shipping Destination
                   </p>
                   <p className="font-display font-bold text-sm text-bone">
                     {order.shippingAddress?.fullName || order.customerName}
@@ -307,23 +313,23 @@ function TrackOrderContent() {
 
             {/* Ordered Garments */}
             <div className="card-dark p-6 sm:p-8 space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <div className="flex items-center justify-between pb-3 border-b border-black/10">
                 <h3 className="font-display font-bold text-base uppercase tracking-wider">
                   Ordered Garments ({(order.items || []).reduce((s, i) => s + i.quantity, 0)})
                 </h3>
-                <span className="font-mono font-bold text-lg text-acid">
+                <span className="font-mono font-bold text-lg text-bone">
                   {formatINR(order.total)}
                 </span>
               </div>
 
-              <div className="divide-y divide-white/[0.07]">
+              <div className="divide-y divide-black/10">
                 {(order.items || []).map((item, idx) => (
                   <div key={`${item.productId || idx}-${item.size}`} className="py-4 flex items-center gap-4">
                     {item.image && (
                       <img
                         src={item.image}
                         alt={item.name}
-                        className="w-16 h-20 object-cover rounded-sm bg-surface border border-white/10 shrink-0"
+                        className="w-16 h-20 object-cover rounded-sm bg-surface border border-black/10 shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
@@ -353,13 +359,7 @@ function TrackOrderContent() {
 
 export default function TrackOrderPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-[70vh] bg-obsidian text-bone flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-acid animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={<DofforLoader fullScreen label="Loading Order Tracker" />}>
       <TrackOrderContent />
     </Suspense>
   );

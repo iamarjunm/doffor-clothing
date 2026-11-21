@@ -144,43 +144,42 @@ export default function LookbookPage() {
 
   return (
     <div className="bg-obsidian text-bone min-h-screen">
-      {/* Editorial Hero Masthead */}
-      <section className="relative border-b border-white/[0.08] overflow-hidden">
+      {/* Editorial Hero Masthead — Dark Campaign Canvas for Crisp Luxury Contrast */}
+      <section className="relative bg-[#0B0B0C] text-white border-b border-[#0B0B0C]/15 overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/images/hero-campaign.jpg"
             alt="Doffor Drop 04 Archive Grunge Campaign"
-            className="w-full h-full object-cover opacity-35 scale-[1.02]"
+            className="w-full h-full object-cover opacity-50 scale-[1.02]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/75 to-obsidian/45" />
-          <div className="absolute inset-0 grain-overlay opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0C] via-[#0B0B0C]/70 to-[#0B0B0C]/45" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-10 border-b border-white/15 pb-5">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-10 border-b border-white/20 pb-5">
             <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 bg-acid text-obsidian font-mono text-[11px] font-bold uppercase tracking-widest rounded-sm">
+              <span className="px-2.5 py-1 bg-white text-[#0B0B0C] font-mono text-[11px] font-bold uppercase tracking-widest rounded-sm">
                 ISSUE 04
               </span>
-              <span className="font-mono text-xs uppercase tracking-[0.25em] text-ash">
+              <span className="font-mono text-xs uppercase tracking-[0.25em] text-white/75">
                 AUTUMN / WINTER ARCHIVE EDITORIAL
               </span>
             </div>
-            <span className="font-mono text-xs uppercase tracking-widest text-bone/70">
+            <span className="font-mono text-xs uppercase tracking-widest text-white/80">
               6 CURATED LOOKS • 240–280 GSM HEAVYWEIGHT COTTON
             </span>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
             <div className="lg:col-span-8 space-y-5">
-              <p className="font-mono text-xs uppercase tracking-[0.3em] text-acid">
+              <p className="font-mono text-xs uppercase tracking-[0.3em] text-white/75">
                 DOFFOR CLOTHING PRESENTS
               </p>
-              <h1 className="font-condensed text-6xl sm:text-7xl lg:text-[7.5rem] leading-[0.88] tracking-tight uppercase">
+              <h1 className="font-condensed text-6xl sm:text-7xl lg:text-[7.5rem] leading-[0.88] tracking-tight uppercase text-white">
                 DROP 04:{' '}
-                <span className="text-stroke-acid block sm:inline">ARCHIVE GRUNGE</span>
+                <span className="text-white/85 block sm:inline">ARCHIVE GRUNGE</span>
               </h1>
-              <p className="text-base sm:text-lg text-bone/80 max-w-2xl leading-relaxed">
+              <p className="text-base sm:text-lg text-white/80 max-w-2xl leading-relaxed">
                 Shot across raw concrete rooftops, underground parking decks, and late-night studios.
                 Six architectural heavyweight silhouettes cut for music heads, designers, athletes, and
                 everyone who refuses disposable fast-fashion tees.
@@ -188,8 +187,8 @@ export default function LookbookPage() {
             </div>
 
             <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end">
-              <div className="card-dark p-4 w-full sm:w-auto lg:w-72 space-y-2.5">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-ash">
+              <div className="bg-[#0B0B0C]/80 backdrop-blur-md border border-white/20 p-4 w-full sm:w-auto lg:w-72 space-y-2.5">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-white/65">
                   Jump To Spread
                 </p>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -197,7 +196,7 @@ export default function LookbookPage() {
                     <a
                       key={look.number}
                       href={`#${look.number.toLowerCase().replace(/\s+/g, '-')}`}
-                      className="px-2 py-1.5 text-center rounded-sm bg-obsidian border border-white/10 font-mono text-[11px] text-bone/80 hover:border-acid hover:text-acid transition-colors"
+                      className="px-2 py-1.5 text-center rounded-sm bg-white/10 border border-white/20 font-mono text-[11px] text-white hover:bg-white hover:text-[#0B0B0C] transition-colors"
                     >
                       {look.number.replace('LOOK ', '#')}
                     </a>
@@ -231,7 +230,7 @@ export default function LookbookPage() {
                   <span className="font-condensed text-4xl sm:text-5xl text-acid leading-none">
                     {look.number}
                   </span>
-                  <div className="h-8 w-px bg-white/15" />
+                  <div className="h-8 w-px bg-[#0B0B0C]/20" />
                   <div>
                     <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-ash">
                       {look.code}

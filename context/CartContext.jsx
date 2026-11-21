@@ -65,12 +65,14 @@ export function CartProvider({ children }) {
     setCouponDiscount(disc);
   }, [subtotal, coupon]);
 
-  const freeShippingThreshold = config.freeShippingThreshold || 1499;
+  const freeShippingThreshold = Number(config?.freeShippingThreshold ?? 1499);
+  const configuredStandardShippingFee = Number(config?.standardShippingFee ?? 79);
   const amountToFreeShipping = Math.max(
     0,
     freeShippingThreshold - Math.max(0, subtotal - couponDiscount)
   );
-  const standardShippingFee = subtotal === 0 ? 0 : amountToFreeShipping === 0 ? 0 : 79;
+  const standardShippingFee =
+    subtotal === 0 ? 0 : amountToFreeShipping === 0 ? 0 : configuredStandardShippingFee;
 
   const addToCart = (product, { size = 'L', color, quantity = 1, openDrawer = true } = {}) => {
     const selectedColor = color || product.colors?.[0]?.name || 'Jet Black';

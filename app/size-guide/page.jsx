@@ -179,7 +179,7 @@ export default function SizeGuidePage() {
                 max={200}
                 value={heightCm}
                 onChange={(e) => setHeightCm(Number(e.target.value))}
-                className="w-full accent-[#E8FF2A] cursor-pointer"
+                className="w-full accent-[#0B0B0C] cursor-pointer"
               />
               <div className="flex justify-between font-mono text-[10px] text-ash">
                 <span>150 cm (4&apos;11&quot;)</span>
@@ -202,7 +202,7 @@ export default function SizeGuidePage() {
                 max={115}
                 value={weightKg}
                 onChange={(e) => setWeightKg(Number(e.target.value))}
-                className="w-full accent-[#E8FF2A] cursor-pointer"
+                className="w-full accent-[#0B0B0C] cursor-pointer"
               />
               <div className="flex justify-between font-mono text-[10px] text-ash">
                 <span>42 kg</span>
@@ -231,7 +231,7 @@ export default function SizeGuidePage() {
                       className={`p-3.5 rounded-sm border text-left transition-all ${
                         active
                           ? 'bg-acid/15 border-acid text-bone'
-                          : 'bg-obsidian border-white/10 text-ash hover:border-white/30'
+                          : 'bg-obsidian border-[#0B0B0C]/15 text-ash hover:border-[#0B0B0C]/45'
                       }`}
                     >
                       <p className={`font-mono text-xs font-bold uppercase ${active ? 'text-acid' : 'text-bone'}`}>
@@ -358,7 +358,7 @@ export default function SizeGuidePage() {
                   return (
                     <tr
                       key={row.size}
-                      className={isRec ? 'bg-acid/10 text-bone' : 'hover:bg-white/[0.02] text-bone/85'}
+                      className={isRec ? 'bg-acid/10 text-bone' : 'hover:bg-[#0B0B0C]/[0.04] text-bone/85'}
                     >
                       <td className="py-4 px-4 font-bold">
                         <span className="inline-flex items-center gap-2">

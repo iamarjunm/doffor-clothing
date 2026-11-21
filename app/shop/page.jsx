@@ -150,7 +150,7 @@ export default function ShopPage() {
                   className={`px-4 py-2 rounded-sm font-mono text-xs uppercase tracking-wider border transition-all ${
                     active
                       ? 'bg-acid text-obsidian border-acid font-bold'
-                      : 'bg-charcoal text-ash border-white/10 hover:border-white/30 hover:text-bone'
+                      : 'bg-charcoal text-ash border-[#0B0B0C]/15 hover:border-[#0B0B0C]/50 hover:text-bone'
                   }`}
                 >
                   {cat.label}

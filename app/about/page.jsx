@@ -206,7 +206,7 @@ export default function AboutPage() {
                     <div className="w-11 h-11 rounded-sm bg-acid/10 border border-acid/40 flex items-center justify-center text-acid">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="font-condensed text-4xl text-white/15">{pillar.index}</span>
+                    <span className="font-condensed text-4xl text-[#0B0B0C]/20">{pillar.index}</span>
                   </div>
 
                   <div>
@@ -273,7 +273,7 @@ export default function AboutPage() {
               {PRODUCTION_STEPS.map((item) => (
                 <div
                   key={item.step}
-                  className="bg-obsidian border border-white/[0.08] rounded-sm p-6 sm:p-7 space-y-3 hover:border-white/20 transition-colors"
+                  className="bg-obsidian border border-[#0B0B0C]/10 rounded-sm p-6 sm:p-7 space-y-3 hover:border-[#0B0B0C]/35 transition-colors"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <span className="px-2.5 py-1 rounded-sm bg-acid/15 border border-acid/40 font-mono text-[10px] font-bold uppercase tracking-widest text-acid">

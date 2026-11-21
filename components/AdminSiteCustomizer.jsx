@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { INITIAL_CONFIG } from '../lib/catalog';
 import { updateStoreConfig, uploadProductImage } from '../lib/dataService';
+import SanityMediaPicker from './SanityMediaPicker';
 
 const THEME_PRESETS = [
   {
@@ -88,6 +89,11 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
   const [draft, setDraft] = useState(INITIAL_CONFIG);
   const [saving, setSaving] = useState(false);
   const [uploadingKey, setUploadingKey] = useState('');
+  const [mediaPickerCallback, setMediaPickerCallback] = useState(null);
+
+  const openMediaPicker = (onPick) => {
+    setMediaPickerCallback(() => onPick);
+  };
 
   useEffect(() => {
     if (config) {
@@ -598,7 +604,7 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
               <label className="block text-[10px] uppercase tracking-[0.18em] text-ash">
                 Hero Campaign Image (URL or Upload)
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap sm:flex-nowrap gap-2">
                 <input
                   type="text"
                   value={draft.hero?.image || ''}
@@ -625,6 +631,19 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                     }
                   />
                 </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openMediaPicker((url) => {
+                      updateNested('hero', 'image', url);
+                      pushToast('Hero image selected from Sanity CDN.');
+                    })
+                  }
+                  className="btn-outline py-2 px-3.5 shrink-0"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  Sanity Library
+                </button>
               </div>
 
               <div>
@@ -898,7 +917,7 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                       />
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap sm:flex-nowrap gap-2">
                     <input
                       type="text"
                       placeholder="Link (e.g. /collections/full-sleeves)"
@@ -928,6 +947,19 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                         }
                       />
                     </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openMediaPicker((url) => {
+                          updateArrayItem('editorialSplit', idx, 'image', url);
+                          pushToast('Editorial split photo selected from Sanity CDN.');
+                        })
+                      }
+                      className="btn-outline py-1.5 px-3 shrink-0"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      Sanity Library
+                    </button>
                   </div>
                 </div>
               ))}
@@ -978,7 +1010,7 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                       />
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap sm:flex-nowrap gap-2">
                     <input
                       type="text"
                       value={tile.image || ''}
@@ -989,7 +1021,12 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                       className="input-dark text-xs py-1.5 flex-1"
                     />
                     <label className="btn-outline py-1.5 px-3 cursor-pointer shrink-0">
-                      <Upload className="w-3.5 h-3.5" /> Upload
+                      {uploadingKey === `sil-${idx}` ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}{' '}
+                      Upload
                       <input
                         type="file"
                         accept="image/*"
@@ -1003,6 +1040,19 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                         }
                       />
                     </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openMediaPicker((url) => {
+                          updateArrayItem('silhouettes', idx, 'image', url);
+                          pushToast('Silhouette tile image selected from Sanity CDN.');
+                        })
+                      }
+                      className="btn-outline py-1.5 px-3 shrink-0"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      Sanity Library
+                    </button>
                   </div>
                 </div>
               ))}
@@ -1029,21 +1079,41 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                     placeholder="Caption"
                     className="input-dark text-xs py-1.5"
                   />
-                  <label className="btn-outline w-full py-1.5 cursor-pointer text-center">
-                    <Upload className="w-3 h-3" /> Replace Photo
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleImageUpload(
-                          e.target.files?.[0],
-                          (url) => updateArrayItem('lookbookStrip', idx, 'src', url),
-                          `lb-${idx}`
-                        )
+                  <div className="flex flex-col gap-1.5">
+                    <label className="btn-outline w-full py-1.5 px-2.5 cursor-pointer text-center">
+                      {uploadingKey === `lb-${idx}` ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Upload className="w-3 h-3" />
+                      )}{' '}
+                      Replace Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleImageUpload(
+                            e.target.files?.[0],
+                            (url) => updateArrayItem('lookbookStrip', idx, 'src', url),
+                            `lb-${idx}`
+                          )
+                        }
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        openMediaPicker((url) => {
+                          updateArrayItem('lookbookStrip', idx, 'src', url);
+                          pushToast('Lookbook shot selected from Sanity CDN.');
+                        })
                       }
-                    />
-                  </label>
+                      className="btn-outline w-full py-1.5 px-2.5 text-center"
+                    >
+                      <ImageIcon className="w-3 h-3" />
+                      Sanity Library
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1223,6 +1293,17 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
           </div>
         </div>
       )}
+
+      <SanityMediaPicker
+        open={Boolean(mediaPickerCallback)}
+        onClose={() => setMediaPickerCallback(null)}
+        onSelect={(url) => {
+          if (typeof mediaPickerCallback === 'function') {
+            mediaPickerCallback(url);
+          }
+          setMediaPickerCallback(null);
+        }}
+      />
     </div>
   );
 }

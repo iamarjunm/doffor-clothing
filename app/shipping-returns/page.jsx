@@ -155,7 +155,7 @@ export default function ShippingReturnsPage() {
               </thead>
               <tbody className="divide-y divide-white/[0.06] text-sm">
                 {SHIPPING_ZONES.map((z) => (
-                  <tr key={z.zone} className="hover:bg-white/[0.02]">
+                  <tr key={z.zone} className="hover:bg-[#0B0B0C]/[0.04]">
                     <td className="py-4 px-4 font-display font-bold text-bone whitespace-nowrap">
                       {z.zone}
                     </td>
@@ -255,7 +255,7 @@ export default function ShippingReturnsPage() {
           {/* COD */}
           <div className="card-dark p-7 space-y-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-sm bg-white/[0.05] border border-white/15 flex items-center justify-center text-bone">
+              <div className="w-10 h-10 rounded-sm bg-[#0B0B0C]/[0.05] border border-[#0B0B0C]/15 flex items-center justify-center text-bone">
                 <Package className="w-5 h-5" />
               </div>
               <div>

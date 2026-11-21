@@ -47,7 +47,7 @@ export default function RazorpayModal({ open, orderData, customer, onClose, onPa
       <div className="relative z-10 w-full max-w-md bg-[#0E1320] text-white rounded-md border border-blue-500/30 shadow-2xl overflow-hidden animate-fade-up">
         <div className="bg-gradient-to-r from-[#0B2A6B] to-[#1A56DB] px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded bg-obsidian border border-acid flex items-center justify-center font-display font-extrabold text-acid text-lg">
+            <div className="w-10 h-10 rounded bg-white border border-white/25 flex items-center justify-center font-display font-extrabold text-[#0B0B0C] text-lg">
               D
             </div>
             <div>
@@ -71,7 +71,7 @@ export default function RazorpayModal({ open, orderData, customer, onClose, onPa
           </div>
           <div className="text-right">
             <p className="text-[11px] text-blue-200/70">Payable Amount</p>
-            <p className="font-mono font-bold text-lg text-acid">{formatINR(totalINR)}</p>
+            <p className="font-mono font-bold text-lg text-white">{formatINR(totalINR)}</p>
           </div>
         </div>
 

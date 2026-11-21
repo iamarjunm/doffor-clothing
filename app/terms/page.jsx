@@ -142,7 +142,7 @@ export default function TermsPage() {
                 <h2 className="font-display font-bold text-xl text-bone">{sec.title}</h2>
                 <div className="space-y-3">
                   {sec.paragraphs.map((p) => (
-                    <p key={p} className="text-sm text-ash leading-relaxed">
+                    <p key={p} className="text-sm text-bone/80 leading-relaxed">
                       {p}
                     </p>
                   ))}

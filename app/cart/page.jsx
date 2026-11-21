@@ -43,16 +43,20 @@ export default function CartPage() {
     applyCouponCode,
     removeCoupon,
   } = useCart();
-  const { products } = useStore();
+  const { products, config } = useStore();
 
   const [promoInput, setPromoInput] = useState('');
   const [promoError, setPromoError] = useState('');
   const [applyingPromo, setApplyingPromo] = useState(false);
 
+  const codEnabled = config?.codEnabled !== false;
   const totalCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const netSubtotal = Math.max(0, subtotal - couponDiscount);
   const estimatedTotal = netSubtotal + standardShippingFee;
-  const freeShipProgress = Math.min(100, Math.round((netSubtotal / freeShippingThreshold) * 100));
+  const freeShipProgress =
+    freeShippingThreshold > 0
+      ? Math.min(100, Math.round((netSubtotal / freeShippingThreshold) * 100))
+      : 100;
 
   const recommendedProducts = products
     .filter((p) => !items.some((i) => i.productId === p.id))
@@ -77,17 +81,17 @@ export default function CartPage() {
     <div className="min-h-screen bg-obsidian text-bone pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         {/* Top Breadcrumb & Title */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 border-b border-white/[0.08]">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 border-b border-black/10">
           <div>
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ash hover:text-acid transition-colors mb-3"
+              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ash hover:text-bone transition-colors mb-3"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Continue Shopping
             </Link>
             <h1 className="font-display font-extrabold text-3xl sm:text-5xl tracking-tight uppercase">
               Your Bag{' '}
-              <span className="font-mono text-acid text-xl sm:text-2xl align-middle">
+              <span className="font-mono text-ash text-xl sm:text-2xl align-middle">
                 [{totalCount}]
               </span>
             </h1>
@@ -101,8 +105,8 @@ export default function CartPage() {
         {items.length === 0 ? (
           <div className="py-16">
             <div className="card-dark max-w-xl mx-auto p-10 text-center space-y-5">
-              <div className="w-16 h-16 rounded-full bg-surface border border-white/10 mx-auto flex items-center justify-center">
-                <ShoppingBag className="w-7 h-7 text-acid" />
+              <div className="w-16 h-16 rounded-full bg-surface border border-black/10 mx-auto flex items-center justify-center">
+                <ShoppingBag className="w-7 h-7 text-bone" />
               </div>
               <div className="space-y-2">
                 <h2 className="font-display font-bold text-2xl uppercase">Your Bag Is Empty</h2>
@@ -128,7 +132,7 @@ export default function CartPage() {
                   </h3>
                   <Link
                     href="/shop"
-                    className="font-mono text-xs uppercase tracking-widest text-acid hover:underline"
+                    className="font-mono text-xs uppercase tracking-widest text-bone hover:underline"
                   >
                     View All
                   </Link>
@@ -149,25 +153,36 @@ export default function CartPage() {
               <div className="card-dark p-5">
                 <div className="flex items-center justify-between gap-3 mb-2.5">
                   <div className="flex items-center gap-2.5 text-sm">
-                    <Truck className="w-4 h-4 text-acid shrink-0" />
+                    <Truck
+                      className={`w-4 h-4 shrink-0 ${
+                        amountToFreeShipping === 0 ? 'text-emerald-800' : 'text-bone'
+                      }`}
+                    />
                     {amountToFreeShipping === 0 ? (
                       <span className="font-medium text-bone">
-                        Unlocked <strong className="text-acid">FREE Pan-India Shipping</strong> on your Drop 04 order!
+                        Unlocked{' '}
+                        <strong className="text-emerald-800">FREE Pan-India Shipping</strong> on your Drop 04 order!
                       </span>
                     ) : (
                       <span className="text-ash">
                         Add <strong className="text-bone font-mono">{formatINR(amountToFreeShipping)}</strong> more to unlock{' '}
-                        <span className="text-acid font-semibold">FREE Pan-India Shipping</span>
+                        <span className="text-bone font-semibold">FREE Pan-India Shipping</span>
                       </span>
                     )}
                   </div>
-                  <span className="font-mono text-xs text-acid font-bold shrink-0">
+                  <span
+                    className={`font-mono text-xs font-bold shrink-0 ${
+                      amountToFreeShipping === 0 ? 'text-emerald-800' : 'text-bone'
+                    }`}
+                  >
                     {freeShipProgress}%
                   </span>
                 </div>
-                <div className="h-1.5 w-full bg-surface rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-black/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-acid transition-all duration-500"
+                    className={`h-full transition-all duration-500 ${
+                      amountToFreeShipping === 0 ? 'bg-emerald-700' : 'bg-bone'
+                    }`}
                     style={{ width: `${freeShipProgress}%` }}
                   />
                 </div>
@@ -182,11 +197,11 @@ export default function CartPage() {
                   return (
                     <div
                       key={item.key}
-                      className="card-dark p-4 sm:p-5 flex gap-4 sm:gap-5 transition-colors hover:border-white/20"
+                      className="card-dark p-4 sm:p-5 flex gap-4 sm:gap-5 transition-colors hover:border-black/25"
                     >
                       <Link
                         href={`/product/${item.slug || item.productId}`}
-                        className="w-24 h-32 sm:w-28 sm:h-36 shrink-0 bg-surface rounded-sm overflow-hidden border border-white/10"
+                        className="w-24 h-32 sm:w-28 sm:h-36 shrink-0 bg-surface rounded-sm overflow-hidden border border-black/10"
                       >
                         <img
                           src={item.image}
@@ -200,19 +215,19 @@ export default function CartPage() {
                           <div className="min-w-0">
                             <Link
                               href={`/product/${item.slug || item.productId}`}
-                              className="font-display font-bold text-base sm:text-lg text-bone hover:text-acid transition-colors line-clamp-1"
+                              className="font-display font-bold text-base sm:text-lg text-bone hover:underline transition-colors line-clamp-1"
                             >
                               {item.name}
                             </Link>
                             <div className="mt-1.5 flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ash">
-                              <span className="px-2 py-0.5 bg-surface border border-white/10 rounded-sm text-bone">
+                              <span className="px-2 py-0.5 bg-surface border border-black/10 rounded-sm text-bone">
                                 Size: {item.size}
                               </span>
-                              <span className="px-2 py-0.5 bg-surface border border-white/10 rounded-sm">
+                              <span className="px-2 py-0.5 bg-surface border border-black/10 rounded-sm text-bone">
                                 {item.color}
                               </span>
                               {item.gsm && (
-                                <span className="px-2 py-0.5 bg-acid/10 border border-acid/30 text-acid rounded-sm">
+                                <span className="px-2 py-0.5 bg-white border border-black/15 text-bone rounded-sm font-semibold">
                                   {item.gsm} GSM
                                 </span>
                               )}
@@ -231,11 +246,11 @@ export default function CartPage() {
 
                         <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
                           {/* Quantity Stepper */}
-                          <div className="inline-flex items-center border border-white/15 bg-obsidian rounded-sm">
+                          <div className="inline-flex items-center border border-black/15 bg-white rounded-sm">
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.key, -1)}
-                              className="w-8 h-8 flex items-center justify-center text-ash hover:text-bone hover:bg-white/5 transition-colors"
+                              className="w-8 h-8 flex items-center justify-center text-ash hover:text-bone hover:bg-black/5 transition-colors"
                               aria-label="Decrease quantity"
                             >
                               <Minus className="w-3.5 h-3.5" />
@@ -246,7 +261,7 @@ export default function CartPage() {
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.key, 1)}
-                              className="w-8 h-8 flex items-center justify-center text-ash hover:text-acid hover:bg-white/5 transition-colors"
+                              className="w-8 h-8 flex items-center justify-center text-ash hover:text-bone hover:bg-black/5 transition-colors"
                               aria-label="Increase quantity"
                             >
                               <Plus className="w-3.5 h-3.5" />
@@ -280,7 +295,7 @@ export default function CartPage() {
               <div className="card-dark p-5 space-y-4">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-acid" />
+                    <Tag className="w-4 h-4 text-bone" />
                     <h2 className="font-display font-bold text-sm uppercase tracking-wider">
                       Promo Code
                     </h2>
@@ -289,20 +304,20 @@ export default function CartPage() {
                 </div>
 
                 {coupon ? (
-                  <div className="flex items-center justify-between gap-3 p-3.5 rounded-sm bg-acid/10 border border-acid/40">
+                  <div className="flex items-center justify-between gap-3 p-3.5 rounded-sm bg-emerald-50 border border-emerald-200">
                     <div className="flex items-center gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-acid shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-800 shrink-0" />
                       <div>
-                        <p className="font-mono text-xs font-bold text-acid uppercase tracking-wider">
+                        <p className="font-mono text-xs font-bold text-emerald-800 uppercase tracking-wider">
                           {coupon.code} Applied — Saving {formatINR(couponDiscount)}
                         </p>
-                        <p className="text-xs text-bone/80 mt-0.5">{coupon.description}</p>
+                        <p className="text-xs text-emerald-900/80 mt-0.5">{coupon.description}</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={removeCoupon}
-                      className="p-1.5 text-ash hover:text-bone transition-colors"
+                      className="p-1.5 text-emerald-800/70 hover:text-emerald-950 transition-colors"
                       aria-label="Remove promo code"
                     >
                       <X className="w-4 h-4" />
@@ -347,9 +362,9 @@ export default function CartPage() {
                           type="button"
                           onClick={() => handleApplyPromo(p.code)}
                           disabled={applyingPromo}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-surface border border-white/10 hover:border-acid text-xs font-mono transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-white border border-black/15 hover:border-bone text-xs font-mono transition-colors"
                         >
-                          <Sparkles className="w-3 h-3 text-acid" />
+                          <Sparkles className="w-3 h-3 text-bone" />
                           <span className="font-bold text-bone">{p.code}</span>
                           <span className="text-ash">• {p.label}</span>
                         </button>
@@ -363,7 +378,7 @@ export default function CartPage() {
             {/* Right Column: Sticky Order Summary */}
             <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-4">
               <div className="card-dark p-6 space-y-5">
-                <h2 className="font-display font-bold text-lg uppercase tracking-wider pb-3 border-b border-white/[0.08]">
+                <h2 className="font-display font-bold text-lg uppercase tracking-wider pb-3 border-b border-black/10">
                   Order Summary
                 </h2>
 
@@ -374,29 +389,35 @@ export default function CartPage() {
                   </div>
 
                   {couponDiscount > 0 && (
-                    <div className="flex items-center justify-between text-acid">
-                      <span className="font-mono text-xs uppercase">Promo ({coupon?.code})</span>
+                    <div className="flex items-center justify-between text-emerald-800">
+                      <span className="font-mono text-xs uppercase font-semibold">Promo ({coupon?.code})</span>
                       <span className="font-mono font-semibold">-{formatINR(couponDiscount)}</span>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between text-ash">
                     <span>Standard Shipping</span>
-                    <span className={`font-mono ${standardShippingFee === 0 ? 'text-acid font-semibold' : 'text-bone'}`}>
+                    <span
+                      className={`font-mono ${
+                        standardShippingFee === 0 ? 'text-emerald-800 font-semibold' : 'text-bone'
+                      }`}
+                    >
                       {standardShippingFee === 0 ? 'FREE' : formatINR(standardShippingFee)}
                     </span>
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-white/[0.08]">
+                <div className="pt-4 border-t border-black/10">
                   <div className="flex items-baseline justify-between">
                     <span className="font-display font-bold uppercase text-base">Estimated Total</span>
-                    <span className="font-mono font-bold text-2xl text-acid">
+                    <span className="font-mono font-bold text-2xl text-bone">
                       {formatINR(estimatedTotal)}
                     </span>
                   </div>
                   <p className="font-mono text-[10px] text-ash mt-1">
-                    Inclusive of GST • Express 48hr & COD options at checkout
+                    {codEnabled
+                      ? 'Inclusive of GST • Express 48hr & COD options at checkout'
+                      : 'Inclusive of GST • Express 48hr shipping available at checkout'}
                   </p>
                 </div>
 
@@ -405,22 +426,32 @@ export default function CartPage() {
                 </Link>
 
                 {/* Trust Badges */}
-                <div className="pt-4 border-t border-white/[0.08] space-y-3">
+                <div className="pt-4 border-t border-black/10 space-y-3">
                   <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="p-2.5 rounded-sm bg-obsidian border border-white/[0.07]">
-                      <Lock className="w-4 h-4 text-acid mx-auto mb-1" />
+                    <div className="p-2.5 rounded-sm bg-white border border-black/10">
+                      <Lock className="w-4 h-4 text-bone mx-auto mb-1" />
                       <p className="font-mono text-[10px] uppercase text-bone font-semibold">Razorpay</p>
                       <p className="text-[10px] text-ash">256-bit SSL</p>
                     </div>
-                    <div className="p-2.5 rounded-sm bg-obsidian border border-white/[0.07]">
-                      <ShieldCheck className="w-4 h-4 text-acid mx-auto mb-1" />
+                    <div className="p-2.5 rounded-sm bg-white border border-black/10">
+                      <ShieldCheck className="w-4 h-4 text-bone mx-auto mb-1" />
                       <p className="font-mono text-[10px] uppercase text-bone font-semibold">UPI / Cards</p>
                       <p className="text-[10px] text-ash">GPay & PhonePe</p>
                     </div>
-                    <div className="p-2.5 rounded-sm bg-obsidian border border-white/[0.07]">
-                      <Banknote className="w-4 h-4 text-acid mx-auto mb-1" />
-                      <p className="font-mono text-[10px] uppercase text-bone font-semibold">COD Ready</p>
-                      <p className="text-[10px] text-ash">Pan-India</p>
+                    <div className="p-2.5 rounded-sm bg-white border border-black/10">
+                      {codEnabled ? (
+                        <>
+                          <Banknote className="w-4 h-4 text-bone mx-auto mb-1" />
+                          <p className="font-mono text-[10px] uppercase text-bone font-semibold">COD Ready</p>
+                          <p className="text-[10px] text-ash">Pan-India</p>
+                        </>
+                      ) : (
+                        <>
+                          <Truck className="w-4 h-4 text-bone mx-auto mb-1" />
+                          <p className="font-mono text-[10px] uppercase text-bone font-semibold">Air Express</p>
+                          <p className="text-[10px] text-ash">Pan-India</p>
+                        </>
+                      )}
                     </div>
                   </div>
                   <p className="text-[11px] text-ash text-center leading-relaxed">

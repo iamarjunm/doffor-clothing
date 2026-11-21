@@ -1,0 +1,14 @@
+import { defineConfig } from 'sanity';
+import { structureTool } from 'sanity/structure';
+import { schemaTypes } from './schemaTypes';
+
+export default defineConfig({
+  name: 'doffor-clothing',
+  title: 'DOFFOR CLOTHING — Studio & Asset CDN',
+  projectId: 'mwmriieg',
+  dataset: 'production',
+  plugins: [structureTool()],
+  schema: {
+    types: schemaTypes,
+  },
+});

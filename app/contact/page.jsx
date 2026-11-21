@@ -371,7 +371,7 @@ export default function ContactPage() {
                   className={`rounded-sm border transition-colors ${
                     isOpen
                       ? 'bg-obsidian border-acid/40'
-                      : 'bg-obsidian/70 border-white/[0.08] hover:border-white/20'
+                      : 'bg-obsidian border-[#0B0B0C]/10 hover:border-[#0B0B0C]/35'
                   }`}
                 >
                   <button

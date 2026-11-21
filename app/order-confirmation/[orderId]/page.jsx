@@ -12,11 +12,11 @@ import {
   ArrowRight,
   MapPin,
   CreditCard,
-  Loader2,
   AlertCircle,
   Box,
   Home,
 } from 'lucide-react';
+import DofforLoader from '../../../components/DofforLoader';
 import { findOrderByNumberOrId } from '../../../lib/dataService';
 import { formatINR, formatDate, ORDER_STATUS_META } from '../../../lib/format';
 
@@ -58,16 +58,7 @@ export default function OrderConfirmationPage() {
   }, [orderIdParam]);
 
   if (loading) {
-    return (
-      <div className="min-h-[70vh] bg-obsidian text-bone flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 text-acid animate-spin" />
-          <p className="font-mono text-xs uppercase tracking-widest text-ash">
-            Loading Order Receipt...
-          </p>
-        </div>
-      </div>
-    );
+    return <DofforLoader fullScreen label="Loading Order Receipt" />;
   }
 
   if (!order) {
@@ -96,19 +87,20 @@ export default function OrderConfirmationPage() {
   const currentStep = statusMeta.step;
   const gstAmount = Math.round(order.total - order.total / 1.12);
   const taxableValue = order.total - gstAmount;
+  const isPaid = order.paymentStatus === 'paid';
 
   return (
     <div className="min-h-screen bg-obsidian text-bone pb-24 print:bg-white print:text-black print:pb-0">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-8">
         {/* Confirmation Hero Banner */}
-        <div className="card-dark p-6 sm:p-8 border-acid/40 bg-gradient-to-br from-charcoal via-charcoal to-acid/[0.06] no-print">
+        <div className="card-dark p-6 sm:p-8 border-black/15 no-print">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-sm bg-acid text-obsidian flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-sm bg-bone text-obsidian flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <div>
-                <p className="font-mono text-xs uppercase tracking-widest text-acid font-bold">
+                <p className="font-mono text-xs uppercase tracking-widest text-emerald-800 font-bold">
                   Order Confirmed • Drop 04 Secured
                 </p>
                 <h1 className="font-display font-extrabold text-2xl sm:text-3xl uppercase mt-1">
@@ -117,7 +109,7 @@ export default function OrderConfirmationPage() {
                 <p className="text-sm text-ash mt-1">
                   Order <span className="font-mono text-bone font-bold">{order.orderNumber}</span> placed on{' '}
                   {formatDate(order.createdAt)}. Confirmation sent to{' '}
-                  <span className="text-bone">{order.customerEmail}</span>.
+                  <span className="text-bone font-medium">{order.customerEmail}</span>.
                 </p>
               </div>
             </div>
@@ -140,19 +132,25 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* Razorpay / Payment Confirmation Strip */}
-          <div className="mt-6 pt-5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 text-acid">
-                <ShieldCheck className="w-4 h-4" />
-                {order.paymentStatus === 'paid' ? 'RAZORPAY PAYMENT VERIFIED' : 'CASH ON DELIVERY SCHEDULED'}
+          <div className="mt-6 pt-5 border-t border-black/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border font-bold ${
+                  isPaid
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : 'bg-amber-50 border-amber-200 text-amber-800'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                {isPaid ? 'RAZORPAY PAYMENT VERIFIED' : 'CASH ON DELIVERY SCHEDULED'}
               </span>
               {order.razorpayPaymentId && (
-                <span className="px-2.5 py-1 rounded-sm bg-obsidian border border-white/10 text-bone">
+                <span className="px-2.5 py-1 rounded-sm bg-white border border-black/10 text-bone">
                   Payment ID: {order.razorpayPaymentId}
                 </span>
               )}
               {order.razorpayOrderId && (
-                <span className="px-2.5 py-1 rounded-sm bg-obsidian border border-white/10 text-ash">
+                <span className="px-2.5 py-1 rounded-sm bg-white border border-black/10 text-ash">
                   Ref: {order.razorpayOrderId}
                 </span>
               )}
@@ -170,55 +168,64 @@ export default function OrderConfirmationPage() {
               Fulfillment Timeline
             </h2>
             {order.trackingNumber && (
-              <span className="font-mono text-xs text-acid">
+              <span className="font-mono text-xs font-semibold text-bone bg-white border border-black/10 px-2.5 py-1 rounded-sm">
                 AWB: {order.trackingNumber}
               </span>
             )}
           </div>
 
-          <div className="relative grid grid-cols-5 gap-2">
-            <div className="absolute top-4 left-[10%] right-[10%] h-0.5 bg-white/10" />
-            <div
-              className="absolute top-4 left-[10%] h-0.5 bg-acid transition-all duration-500"
-              style={{ width: `${Math.max(0, Math.min(4, currentStep - 1)) * 20}%` }}
-            />
-            {STEPS.map((s) => {
-              const Icon = s.icon;
-              const completed = currentStep >= s.step;
-              const active = currentStep === s.step;
-              return (
-                <div key={s.key} className="relative flex flex-col items-center text-center z-10">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
-                      completed
-                        ? 'bg-acid text-obsidian border-acid'
-                        : 'bg-obsidian text-ash border-white/15'
-                    } ${active ? 'ring-4 ring-acid/25' : ''}`}
-                  >
-                    <Icon className="w-4 h-4" />
+          {order.status === 'cancelled' ? (
+            <div className="p-4 rounded-sm bg-red-50 border border-red-200 flex items-center gap-3 text-sm text-red-900">
+              <AlertCircle className="w-5 h-5 text-crimson shrink-0" />
+              <span>
+                This order has been cancelled. If you paid online via Razorpay, your refund is processed within 3–5 business days.
+              </span>
+            </div>
+          ) : (
+            <div className="relative grid grid-cols-5 gap-2">
+              <div className="absolute top-4 left-[10%] right-[10%] h-0.5 bg-black/10" />
+              <div
+                className="absolute top-4 left-[10%] h-0.5 bg-bone transition-all duration-500"
+                style={{ width: `${Math.max(0, Math.min(4, currentStep - 1)) * 20}%` }}
+              />
+              {STEPS.map((s) => {
+                const Icon = s.icon;
+                const completed = currentStep >= s.step;
+                const active = currentStep === s.step;
+                return (
+                  <div key={s.key} className="relative flex flex-col items-center text-center z-10">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
+                        completed
+                          ? 'bg-bone text-obsidian border-bone'
+                          : 'bg-white text-ash border-black/15'
+                      } ${active ? 'ring-4 ring-black/15' : ''}`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span
+                      className={`mt-2 font-mono text-[10px] sm:text-xs uppercase tracking-wider ${
+                        completed ? 'text-bone font-bold' : 'text-ash'
+                      }`}
+                    >
+                      {s.label}
+                    </span>
                   </div>
-                  <span
-                    className={`mt-2 font-mono text-[10px] sm:text-xs uppercase tracking-wider ${
-                      completed ? 'text-bone font-bold' : 'text-ash'
-                    }`}
-                  >
-                    {s.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Printable Tax Invoice */}
         <div className="card-dark p-6 sm:p-10 print:border print:border-zinc-300 print:bg-white print:text-black print:shadow-none">
           {/* Invoice Top Header */}
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-6 border-b border-white/10 print:border-zinc-300">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-6 border-b border-black/10 print:border-zinc-300">
             <div>
               <p className="font-display font-extrabold text-2xl tracking-wider uppercase text-bone print:text-black">
                 DOFFOR CLOTHING
               </p>
-              <p className="font-mono text-[11px] uppercase tracking-widest text-acid print:text-zinc-700 mt-0.5">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-ash print:text-zinc-700 mt-0.5">
                 Heavyweight Archive Streetwear • Tax Invoice
               </p>
               <div className="mt-3 text-xs text-ash print:text-zinc-600 space-y-0.5 font-mono">
@@ -236,7 +243,7 @@ export default function OrderConfirmationPage() {
                 Payment: {order.paymentMethod || 'Razorpay'}
               </p>
               {order.razorpayPaymentId && (
-                <p className="text-acid print:text-zinc-800 text-[11px]">
+                <p className="text-bone print:text-zinc-800 text-[11px]">
                   Txn: {order.razorpayPaymentId}
                 </p>
               )}
@@ -244,10 +251,10 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* Billing & Shipping Details */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-6 border-b border-white/10 print:border-zinc-300 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-6 border-b border-black/10 print:border-zinc-300 text-sm">
             <div>
               <p className="font-mono text-[11px] uppercase tracking-widest text-ash print:text-zinc-500 mb-2 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-acid print:text-black" /> Ship To
+                <MapPin className="w-3.5 h-3.5 text-bone print:text-black" /> Ship To
               </p>
               <p className="font-bold text-bone print:text-black">
                 {order.shippingAddress?.fullName || order.customerName}
@@ -267,13 +274,17 @@ export default function OrderConfirmationPage() {
 
             <div>
               <p className="font-mono text-[11px] uppercase tracking-widest text-ash print:text-zinc-500 mb-2 flex items-center gap-1.5">
-                <CreditCard className="w-3.5 h-3.5 text-acid print:text-black" /> Payment Summary
+                <CreditCard className="w-3.5 h-3.5 text-bone print:text-black" /> Payment Summary
               </p>
               <div className="space-y-1 text-xs font-mono">
                 <p className="text-bone print:text-black">
                   Status:{' '}
-                  <span className="uppercase font-bold text-acid print:text-black">
-                    {order.paymentStatus === 'paid' ? 'PAID IN FULL' : 'PAY ON DELIVERY (COD)'}
+                  <span
+                    className={`uppercase font-bold print:text-black ${
+                      isPaid ? 'text-emerald-800' : 'text-amber-800'
+                    }`}
+                  >
+                    {isPaid ? 'PAID IN FULL' : 'PAY ON DELIVERY (COD)'}
                   </span>
                 </p>
                 <p className="text-ash print:text-zinc-700">
@@ -296,7 +307,7 @@ export default function OrderConfirmationPage() {
           <div className="py-6 overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/10 print:border-zinc-300 font-mono text-[11px] uppercase tracking-wider text-ash print:text-zinc-600">
+                <tr className="border-b border-black/10 print:border-zinc-300 font-mono text-[11px] uppercase tracking-wider text-ash print:text-zinc-600">
                   <th className="py-2.5 pr-4">Garment</th>
                   <th className="py-2.5 px-3">Spec</th>
                   <th className="py-2.5 px-3 text-center">Qty</th>
@@ -304,7 +315,7 @@ export default function OrderConfirmationPage() {
                   <th className="py-2.5 pl-3 text-right">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.06] print:divide-zinc-200 text-sm">
+              <tbody className="divide-y divide-black/10 print:divide-zinc-200 text-sm">
                 {(order.items || []).map((item, idx) => (
                   <tr key={`${item.productId || idx}-${item.size}-${item.color}`}>
                     <td className="py-4 pr-4">
@@ -313,7 +324,7 @@ export default function OrderConfirmationPage() {
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-11 h-14 object-cover rounded-sm bg-surface border border-white/10 no-print"
+                            className="w-11 h-14 object-cover rounded-sm bg-surface border border-black/10 no-print"
                           />
                         )}
                         <span className="font-display font-bold text-bone print:text-black">
@@ -340,7 +351,7 @@ export default function OrderConfirmationPage() {
           </div>
 
           {/* Totals Footer */}
-          <div className="pt-6 border-t border-white/10 print:border-zinc-300 flex flex-col sm:flex-row justify-between gap-6">
+          <div className="pt-6 border-t border-black/10 print:border-zinc-300 flex flex-col sm:flex-row justify-between gap-6">
             <div className="text-xs text-ash print:text-zinc-600 max-w-xs space-y-1 font-mono">
               <p className="uppercase font-bold text-bone print:text-black">Tax Breakdown (HSN 6109)</p>
               <p>Taxable Value: {formatINR(taxableValue)}</p>
@@ -354,16 +365,20 @@ export default function OrderConfirmationPage() {
                 <span className="font-mono text-bone print:text-black">{formatINR(order.subtotal)}</span>
               </div>
               {order.discount > 0 && (
-                <div className="flex justify-between text-acid print:text-black">
-                  <span className="font-mono text-xs uppercase">
+                <div className="flex justify-between text-emerald-800 print:text-black">
+                  <span className="font-mono text-xs uppercase font-semibold">
                     Promo {order.couponCode ? `(${order.couponCode})` : ''}
                   </span>
-                  <span className="font-mono">-{formatINR(order.discount)}</span>
+                  <span className="font-mono font-semibold">-{formatINR(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-ash print:text-zinc-700">
                 <span>Shipping</span>
-                <span className="font-mono text-bone print:text-black">
+                <span
+                  className={`font-mono print:text-black ${
+                    order.shippingFee === 0 ? 'text-emerald-800 font-semibold' : 'text-bone'
+                  }`}
+                >
                   {order.shippingFee === 0 ? 'FREE' : formatINR(order.shippingFee)}
                 </span>
               </div>
@@ -373,9 +388,9 @@ export default function OrderConfirmationPage() {
                   <span className="font-mono text-bone print:text-black">{formatINR(order.codFee)}</span>
                 </div>
               )}
-              <div className="pt-3 border-t border-white/10 print:border-zinc-300 flex justify-between items-baseline">
+              <div className="pt-3 border-t border-black/10 print:border-zinc-300 flex justify-between items-baseline">
                 <span className="font-display font-bold uppercase text-base">Grand Total</span>
-                <span className="font-mono font-bold text-xl text-acid print:text-black">
+                <span className="font-mono font-bold text-xl text-bone print:text-black">
                   {formatINR(order.total)}
                 </span>
               </div>

@@ -49,6 +49,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import AdminSiteCustomizer from '../../components/AdminSiteCustomizer';
+import SanityMediaPicker from '../../components/SanityMediaPicker';
 import { DofforLoader } from '../../components/DofforLoader';
 import {
   fetchProducts,
@@ -184,6 +185,7 @@ export default function AdminPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [mediaPickerTarget, setMediaPickerTarget] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -563,9 +565,7 @@ export default function AdminPage() {
           images: [...prev.images, ...uploadedUrls],
         }));
         pushToast(
-          `Uploaded ${uploadedUrls.length} image${uploadedUrls.length > 1 ? 's' : ''} (${
-            isFirebaseConfigured ? 'Firebase Storage' : 'Preview Base64'
-          }).`,
+          `Uploaded ${uploadedUrls.length} image${uploadedUrls.length > 1 ? 's' : ''} to Sanity CDN.`,
           'success'
         );
       }
@@ -585,6 +585,21 @@ export default function AdminPage() {
       images: [...prev.images, url],
     }));
     setNewImageUrl('');
+  };
+
+  const handleSelectSanityMedia = (url) => {
+    if (!url) return;
+    if (mediaPickerTarget && typeof mediaPickerTarget === 'object' && mediaPickerTarget.type === 'colorway') {
+      handleColorChange(mediaPickerTarget.index, 'image', url);
+      pushToast('Colorway image selected from Sanity CDN Library.', 'success');
+    } else {
+      setProductForm((prev) => ({
+        ...prev,
+        images: prev.images.includes(url) ? prev.images : [...prev.images, url],
+      }));
+      pushToast('Added photo from Sanity CDN Library.', 'success');
+    }
+    setMediaPickerTarget(null);
   };
 
   const handleRemoveImage = (index) => {
@@ -3338,18 +3353,26 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Section 3: Images Gallery & Firebase Storage Upload */}
+              {/* Section 3: Images Gallery & Sanity CDN Upload */}
               <div className="space-y-3.5">
-                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
                   <h3 className="font-mono text-xs uppercase tracking-widest text-acid flex items-center gap-2">
                     <ImageIcon className="w-3.5 h-3.5" />
                     03 // Images Gallery & Direct Upload
                   </h3>
-                  <span className="font-mono text-[10px] text-ash">
-                    {isFirebaseConfigured
-                      ? 'Uploads directly to Firebase Storage'
-                      : 'Local preview mode (Base64 data URL)'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-[10px] text-ash hidden sm:inline">
+                      Powered by Sanity Global CDN (cdn.sanity.io)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setMediaPickerTarget('gallery')}
+                      className="btn-outline py-1.5 px-3 text-[10px]"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      Browse Sanity CDN Library
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -3532,15 +3555,27 @@ export default function AdminPage() {
                         <label className="block font-mono text-[9px] uppercase text-ash mb-1">
                           Colorway Image URL
                         </label>
-                        <input
-                          type="text"
-                          value={col.image}
-                          onChange={(e) =>
-                            handleColorChange(idx, 'image', e.target.value)
-                          }
-                          placeholder="Optional image URL"
-                          className="input-dark py-1.5 text-xs font-mono"
-                        />
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="text"
+                            value={col.image}
+                            onChange={(e) =>
+                              handleColorChange(idx, 'image', e.target.value)
+                            }
+                            placeholder="Optional image URL"
+                            className="input-dark py-1.5 text-xs font-mono flex-1"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setMediaPickerTarget({ type: 'colorway', index: idx })
+                            }
+                            className="px-2 py-1.5 rounded-sm bg-surface border border-white/15 hover:border-acid text-ash hover:text-acid transition-colors shrink-0"
+                            title="Pick from Sanity CDN Library"
+                          >
+                            <ImageIcon className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="sm:col-span-1 flex justify-end sm:pt-4">
@@ -3585,6 +3620,12 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      <SanityMediaPicker
+        open={Boolean(mediaPickerTarget)}
+        onClose={() => setMediaPickerTarget(null)}
+        onSelect={handleSelectSanityMedia}
+      />
     </div>
   );
 }

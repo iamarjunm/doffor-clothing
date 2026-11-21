@@ -163,7 +163,7 @@ export default function PrivacyPolicyPage() {
                 <h2 className="font-display font-bold text-xl text-bone">{sec.title}</h2>
                 <div className="space-y-3">
                   {sec.body.map((paragraph) => (
-                    <p key={paragraph} className="text-sm text-ash leading-relaxed">
+                    <p key={paragraph} className="text-sm text-bone/80 leading-relaxed">
                       {paragraph}
                     </p>
                   ))}

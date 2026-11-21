@@ -114,44 +114,43 @@ export default function CollectionPage() {
 
   return (
     <div className="bg-obsidian text-bone min-h-screen">
-      {/* Editorial Banner */}
-      <section className="relative overflow-hidden border-b border-white/[0.08]">
+      {/* Editorial Banner — Dark Campaign Masthead for Crisp Contrast */}
+      <section className="relative overflow-hidden bg-[#0B0B0C] text-white border-b border-[#0B0B0C]/15">
         <img
           src={meta.banner}
           alt={meta.title}
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-35"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-50"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-obsidian via-obsidian/80 to-obsidian/55" />
-        <div className="absolute inset-0 grain-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0C] via-[#0B0B0C]/70 to-[#0B0B0C]/45" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
           <div className="max-w-3xl space-y-4">
-            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-ash">
-              <Link href="/" className="hover:text-acid transition-colors">
+            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-white/65">
+              <Link href="/" className="hover:text-white transition-colors">
                 Home
               </Link>
               <span>/</span>
-              <Link href="/shop" className="hover:text-acid transition-colors">
+              <Link href="/shop" className="hover:text-white transition-colors">
                 Shop
               </Link>
               <span>/</span>
-              <span className="text-acid">{meta.title}</span>
+              <span className="text-white font-semibold">{meta.title}</span>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-obsidian/80 border border-acid/40 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-acid">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-sm bg-white/10 backdrop-blur-md border border-white/25 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-white">
               <Sparkles className="w-3.5 h-3.5" /> {meta.subtitle}
             </div>
 
-            <h1 className="font-display font-extrabold text-4xl sm:text-6xl uppercase tracking-tight">
+            <h1 className="font-display font-extrabold text-4xl sm:text-6xl uppercase tracking-tight text-white">
               {meta.title}
             </h1>
 
-            <p className="text-sm sm:text-base text-bone/80 leading-relaxed max-w-2xl">
+            <p className="text-sm sm:text-base text-white/80 leading-relaxed max-w-2xl">
               {meta.description}
             </p>
 
-            <div className="inline-flex items-center gap-2 pt-1 font-mono text-xs text-ash">
-              <Layers className="w-4 h-4 text-acid" />
+            <div className="inline-flex items-center gap-2 pt-1 font-mono text-xs text-white/75">
+              <Layers className="w-4 h-4 text-white" />
               <span>{meta.spec}</span>
             </div>
           </div>
@@ -172,7 +171,7 @@ export default function CollectionPage() {
                   className={`px-3.5 py-2 rounded-sm font-mono text-xs uppercase tracking-wider border transition-colors ${
                     active
                       ? 'bg-acid text-obsidian border-acid font-bold'
-                      : 'bg-charcoal text-ash border-white/10 hover:border-white/30 hover:text-bone'
+                      : 'bg-charcoal text-ash border-[#0B0B0C]/15 hover:border-[#0B0B0C]/50 hover:text-bone'
                   }`}
                 >
                   {tab.label}

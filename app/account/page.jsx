@@ -23,6 +23,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
+import DofforLoader from '../../components/DofforLoader';
 import { fetchUserOrders } from '../../lib/dataService';
 import { formatINR, formatDate, ORDER_STATUS_META } from '../../lib/format';
 
@@ -103,22 +104,18 @@ function AccountContent() {
   };
 
   if (authLoading) {
-    return (
-      <div className="min-h-[70vh] bg-obsidian text-bone flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-acid animate-spin" />
-      </div>
-    );
+    return <DofforLoader fullScreen label="Loading Account" />;
   }
 
   if (!user) {
     return (
       <div className="min-h-[75vh] bg-obsidian text-bone flex items-center justify-center px-4 py-16">
         <div className="card-dark max-w-lg w-full p-8 sm:p-10 text-center space-y-5">
-          <div className="w-16 h-16 rounded-full bg-surface border border-white/10 mx-auto flex items-center justify-center">
-            <User className="w-7 h-7 text-acid" />
+          <div className="w-16 h-16 rounded-full bg-surface border border-black/10 mx-auto flex items-center justify-center">
+            <User className="w-7 h-7 text-bone" />
           </div>
           <div className="space-y-2">
-            <p className="font-mono text-xs uppercase tracking-widest text-acid">
+            <p className="font-mono text-xs uppercase tracking-widest text-ash">
               Doffor Member Access
             </p>
             <h1 className="font-display font-extrabold text-3xl uppercase">
@@ -151,10 +148,10 @@ function AccountContent() {
               <img
                 src={user.avatar}
                 alt={user.name}
-                className="w-16 h-16 rounded-full object-cover border-2 border-acid"
+                className="w-16 h-16 rounded-full object-cover border-2 border-bone"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-surface border-2 border-acid flex items-center justify-center font-display font-extrabold text-2xl text-acid uppercase">
+              <div className="w-16 h-16 rounded-full bg-white border-2 border-bone flex items-center justify-center font-display font-extrabold text-2xl text-bone uppercase">
                 {(user.name || user.email || 'D').charAt(0)}
               </div>
             )}
@@ -163,11 +160,11 @@ function AccountContent() {
                 <h1 className="font-display font-extrabold text-2xl sm:text-3xl uppercase">
                   {user.name}
                 </h1>
-                <span className="px-2 py-0.5 rounded-sm bg-surface border border-white/15 font-mono text-[10px] uppercase tracking-wider text-bone">
+                <span className="px-2 py-0.5 rounded-sm bg-white border border-black/15 font-mono text-[10px] uppercase tracking-wider text-bone">
                   {user.provider === 'google' ? 'Google Account' : 'Email Account'}
                 </span>
                 {isAdmin && (
-                  <span className="px-2 py-0.5 rounded-sm bg-acid text-obsidian font-mono text-[10px] font-bold uppercase tracking-wider">
+                  <span className="px-2 py-0.5 rounded-sm bg-bone text-obsidian font-mono text-[10px] font-bold uppercase tracking-wider">
                     ADMIN
                   </span>
                 )}
@@ -188,7 +185,7 @@ function AccountContent() {
             <button
               type="button"
               onClick={handleLogout}
-              className="btn-outline py-2.5 px-4 hover:border-crimson hover:text-crimson"
+              className="btn-outline py-2.5 px-4 hover:!border-crimson hover:!bg-crimson hover:!text-white"
             >
               <LogOut className="w-4 h-4" /> Sign Out
             </button>
@@ -196,7 +193,7 @@ function AccountContent() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap gap-2 border-b border-white/[0.08] pb-4">
+        <div className="flex flex-wrap gap-2 border-b border-black/10 pb-4">
           {[
             { id: 'orders', label: 'Orders', count: orders.length, icon: Package },
             { id: 'wishlist', label: 'Wishlist', count: wishlistedProducts.length, icon: Heart },
@@ -211,8 +208,8 @@ function AccountContent() {
                 onClick={() => setActiveTab(t.id)}
                 className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-sm font-mono text-xs uppercase tracking-wider font-bold transition-all ${
                   active
-                    ? 'bg-acid text-obsidian'
-                    : 'bg-charcoal border border-white/10 text-ash hover:text-bone hover:border-white/25'
+                    ? 'bg-bone text-obsidian'
+                    : 'bg-charcoal border border-black/10 text-ash hover:text-bone hover:border-black/30'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -220,7 +217,9 @@ function AccountContent() {
                 {t.count !== null && (
                   <span
                     className={`px-1.5 py-0.5 rounded-sm text-[10px] ${
-                      active ? 'bg-obsidian text-acid' : 'bg-obsidian text-bone'
+                      active
+                        ? 'bg-white text-bone'
+                        : 'bg-white border border-black/10 text-bone'
                     }`}
                   >
                     {t.count}
@@ -235,13 +234,10 @@ function AccountContent() {
         {activeTab === 'orders' && (
           <div className="space-y-5">
             {ordersLoading ? (
-              <div className="py-16 text-center">
-                <Loader2 className="w-7 h-7 text-acid animate-spin mx-auto" />
-                <p className="font-mono text-xs text-ash mt-2 uppercase">Fetching your orders...</p>
-              </div>
+              <DofforLoader label="Fetching Your Orders" />
             ) : orders.length === 0 ? (
               <div className="card-dark p-10 text-center space-y-4">
-                <ShoppingBag className="w-10 h-10 text-acid mx-auto" />
+                <ShoppingBag className="w-10 h-10 text-bone mx-auto" />
                 <h2 className="font-display font-bold text-xl uppercase">No Orders Yet</h2>
                 <p className="text-sm text-ash max-w-md mx-auto">
                   Orders placed with <span className="text-bone font-mono">{user.email}</span> will show up here with live courier tracking and downloadable tax invoices.
@@ -255,7 +251,7 @@ function AccountContent() {
                 const statusMeta = ORDER_STATUS_META[order.status] || ORDER_STATUS_META.processing;
                 return (
                   <div key={order.id} className="card-dark p-5 sm:p-6 space-y-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-black/10">
                       <div className="space-y-1">
                         <div className="flex flex-wrap items-center gap-2.5">
                           <span className="font-mono font-bold text-base text-bone">
@@ -269,9 +265,9 @@ function AccountContent() {
                         </div>
                         <p className="font-mono text-xs text-ash">
                           Placed on {formatDate(order.createdAt)} •{' '}
-                          <span className="uppercase text-bone">{order.paymentMethod}</span>
+                          <span className="uppercase text-bone font-medium">{order.paymentMethod}</span>
                           {order.razorpayPaymentId && (
-                            <span className="text-acid"> • {order.razorpayPaymentId}</span>
+                            <span className="text-emerald-800"> • {order.razorpayPaymentId}</span>
                           )}
                         </p>
                       </div>
@@ -297,13 +293,13 @@ function AccountContent() {
                       {(order.items || []).map((item, idx) => (
                         <div
                           key={`${order.id}-${idx}`}
-                          className="flex items-center gap-3.5 p-3 rounded-sm bg-obsidian border border-white/[0.06]"
+                          className="flex items-center gap-3.5 p-3 rounded-sm bg-white border border-black/10"
                         >
                           {item.image && (
                             <img
                               src={item.image}
                               alt={item.name}
-                              className="w-14 h-16 object-cover rounded-sm bg-surface shrink-0"
+                              className="w-14 h-16 object-cover rounded-sm bg-surface border border-black/10 shrink-0"
                             />
                           )}
                           <div className="flex-1 min-w-0">
@@ -313,7 +309,7 @@ function AccountContent() {
                             <p className="font-mono text-[11px] text-ash mt-0.5">
                               Size {item.size} • {item.color} • Qty {item.quantity}
                             </p>
-                            <p className="font-mono text-xs font-bold text-acid mt-1">
+                            <p className="font-mono text-xs font-bold text-bone mt-1">
                               {formatINR(item.price * item.quantity)}
                             </p>
                           </div>
@@ -321,12 +317,16 @@ function AccountContent() {
                       ))}
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/[0.06] text-xs font-mono">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-black/10 text-xs font-mono">
                       <span className="text-ash">
-                        Ship to: {order.shippingAddress?.city}, {order.shippingAddress?.state} ({order.shippingAddress?.pincode})
+                        Ship to:{' '}
+                        {[order.shippingAddress?.city, order.shippingAddress?.state]
+                          .filter(Boolean)
+                          .join(', ')}
+                        {order.shippingAddress?.pincode ? ` (${order.shippingAddress.pincode})` : ''}
                       </span>
                       <span className="text-base font-bold text-bone">
-                        Total: <span className="text-acid">{formatINR(order.total)}</span>
+                        Total: {formatINR(order.total)}
                       </span>
                     </div>
                   </div>
@@ -341,7 +341,7 @@ function AccountContent() {
           <div>
             {wishlistedProducts.length === 0 ? (
               <div className="card-dark p-10 text-center space-y-4">
-                <Heart className="w-10 h-10 text-acid mx-auto" />
+                <Heart className="w-10 h-10 text-bone mx-auto" />
                 <h2 className="font-display font-bold text-xl uppercase">Your Wishlist Is Empty</h2>
                 <p className="text-sm text-ash max-w-md mx-auto">
                   Tap the heart icon on any Drop 04 piece to save it here for quick size-adds later.
@@ -364,7 +364,7 @@ function AccountContent() {
         {activeTab === 'profile' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <form onSubmit={handleSaveProfile} className="lg:col-span-7 card-dark p-6 sm:p-8 space-y-5">
-              <div className="pb-3 border-b border-white/[0.08]">
+              <div className="pb-3 border-b border-black/10">
                 <h2 className="font-display font-bold text-lg uppercase">Personal Details</h2>
                 <p className="text-xs text-ash mt-0.5">
                   Saved details automatically pre-fill your Indian shipping checkout form.
@@ -381,6 +381,7 @@ function AccountContent() {
                     <input
                       type="text"
                       required
+                      maxLength={100}
                       value={profileName}
                       onChange={(e) => setProfileName(e.target.value)}
                       className="input-dark pl-10"
@@ -396,6 +397,7 @@ function AccountContent() {
                     <Phone className="w-4 h-4 text-ash absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="tel"
+                      maxLength={30}
                       value={profilePhone}
                       onChange={(e) => setProfilePhone(e.target.value)}
                       placeholder="+91 98765 43210"
@@ -412,6 +414,7 @@ function AccountContent() {
                     <MapPin className="w-4 h-4 text-ash absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
+                      maxLength={100}
                       value={profileCity}
                       onChange={(e) => setProfileCity(e.target.value)}
                       placeholder="Bengaluru / Mumbai / Delhi"
@@ -439,28 +442,28 @@ function AccountContent() {
             </form>
 
             <div className="lg:col-span-5 card-dark p-6 sm:p-8 space-y-5">
-              <h2 className="font-display font-bold text-lg uppercase pb-3 border-b border-white/[0.08]">
+              <h2 className="font-display font-bold text-lg uppercase pb-3 border-b border-black/10">
                 Account Security
               </h2>
 
               <div className="space-y-3 text-sm">
-                <div className="flex items-center justify-between p-3 rounded-sm bg-obsidian border border-white/[0.07]">
+                <div className="flex items-center justify-between p-3 rounded-sm bg-white border border-black/10">
                   <span className="text-ash flex items-center gap-2 text-xs font-mono uppercase">
-                    <Mail className="w-4 h-4 text-acid" /> Email
+                    <Mail className="w-4 h-4 text-bone" /> Email
                   </span>
                   <span className="font-mono text-xs text-bone truncate max-w-[200px]">
                     {user.email}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-sm bg-obsidian border border-white/[0.07]">
+                <div className="flex items-center justify-between p-3 rounded-sm bg-white border border-black/10">
                   <span className="text-ash flex items-center gap-2 text-xs font-mono uppercase">
-                    <Shield className="w-4 h-4 text-acid" /> Auth Method
+                    <Shield className="w-4 h-4 text-bone" /> Auth Method
                   </span>
-                  <span className="px-2 py-0.5 rounded-sm bg-acid/15 text-acid font-mono text-[11px] font-bold uppercase">
+                  <span className="px-2 py-0.5 rounded-sm bg-emerald-50 border border-emerald-200 text-emerald-800 font-mono text-[11px] font-bold uppercase">
                     {user.provider === 'google' ? 'Google OAuth' : 'Email & Password'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between p-3 rounded-sm bg-obsidian border border-white/[0.07]">
+                <div className="flex items-center justify-between p-3 rounded-sm bg-white border border-black/10">
                   <span className="text-ash text-xs font-mono uppercase">Role</span>
                   <span className="font-mono text-xs uppercase text-bone font-bold">
                     {user.role || 'Customer'}
@@ -471,7 +474,7 @@ function AccountContent() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="btn-outline w-full hover:border-crimson hover:text-crimson"
+                className="btn-outline w-full hover:!border-crimson hover:!bg-crimson hover:!text-white"
               >
                 <LogOut className="w-4 h-4" /> Sign Out of Doffor
               </button>
@@ -485,13 +488,7 @@ function AccountContent() {
 
 export default function AccountPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-[70vh] bg-obsidian text-bone flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-acid animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={<DofforLoader fullScreen label="Loading Account" />}>
       <AccountContent />
     </Suspense>
   );

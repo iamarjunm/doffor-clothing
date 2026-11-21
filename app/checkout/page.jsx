@@ -56,12 +56,22 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [promoInput, setPromoInput] = useState('');
   const [promoError, setPromoError] = useState('');
+  const [applyingPromo, setApplyingPromo] = useState(false);
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Razorpay simulator modal state
   const [rzpModalOpen, setRzpModalOpen] = useState(false);
   const [rzpOrderData, setRzpOrderData] = useState(null);
+
+  const codEnabled = config?.codEnabled !== false;
+
+  // Reset payment method to Razorpay whenever COD is disabled in Site Customizer
+  useEffect(() => {
+    if (!codEnabled && paymentMethod === 'cod') {
+      setPaymentMethod('razorpay');
+    }
+  }, [codEnabled, paymentMethod]);
 
   // Auto-fill from signed-in user without overwriting edits
   useEffect(() => {
@@ -75,12 +85,18 @@ export default function CheckoutPage() {
     }));
   }, [user]);
 
-  const expressFee = config?.expressShippingFee || 99;
-  const codFeeAmount = config?.codFee || 49;
+  const activePaymentMethod = codEnabled ? paymentMethod : 'razorpay';
+  const configuredStandardFee = Number(config?.standardShippingFee ?? standardShippingFee ?? 79);
+  const expressFee = Number(config?.expressShippingFee ?? 99);
+  const codFeeAmount = Number(config?.codFee ?? 49);
 
-  const shippingFee = deliverySpeed === 'express' ? expressFee : standardShippingFee;
-  const codFee = paymentMethod === 'cod' ? codFeeAmount : 0;
-  const netSubtotal = Math.max(0, subtotal - couponDiscount);
+  const safeDiscount = Math.min(subtotal, Math.max(0, Number(couponDiscount) || 0));
+  const netSubtotal = Math.max(0, subtotal - safeDiscount);
+  const effectiveStandardShippingFee =
+    subtotal === 0 ? 0 : netSubtotal >= freeShippingThreshold ? 0 : configuredStandardFee;
+  const shippingFee =
+    deliverySpeed === 'express' ? expressFee : effectiveStandardShippingFee;
+  const codFee = activePaymentMethod === 'cod' ? codFeeAmount : 0;
   const finalTotal = netSubtotal + shippingFee + codFee;
 
   const handleChange = (field, value) => {
@@ -111,33 +127,34 @@ export default function CheckoutPage() {
   const buildOrderPayload = (overrides = {}) => {
     const cleanPhone = form.phone.replace(/\D/g, '').slice(-10);
     const formattedPhone = `+91 ${cleanPhone.slice(0, 5)} ${cleanPhone.slice(5)}`;
+    const cleanFullName = form.fullName.trim().slice(0, 120);
     return {
       userId: user?.uid || 'guest',
-      customerName: form.fullName.trim(),
-      customerEmail: form.email.trim().toLowerCase(),
+      customerName: cleanFullName,
+      customerEmail: form.email.trim().toLowerCase().slice(0, 254),
       customerPhone: formattedPhone,
       shippingAddress: {
-        fullName: form.fullName.trim(),
+        fullName: cleanFullName,
         phone: formattedPhone,
-        line1: form.line1.trim(),
-        landmark: form.landmark.trim(),
-        city: form.city.trim(),
+        line1: form.line1.trim().slice(0, 300),
+        landmark: form.landmark.trim().slice(0, 200),
+        city: form.city.trim().slice(0, 100),
         state: form.state,
         pincode: form.pincode.trim(),
       },
-      items: items.map((i) => ({
-        productId: i.productId,
-        slug: i.slug,
-        name: i.name,
-        image: i.image,
-        color: i.color,
+      items: items.slice(0, 50).map((i) => ({
+        productId: String(i.productId || '').slice(0, 120),
+        slug: String(i.slug || '').slice(0, 160),
+        name: String(i.name || '').slice(0, 160),
+        image: String(i.image || ''),
+        color: String(i.color || '').slice(0, 80),
         size: i.size,
-        quantity: i.quantity,
-        price: i.price,
+        quantity: Math.max(1, Math.min(50, Math.round(Number(i.quantity) || 1))),
+        price: Number(i.price),
       })),
       subtotal,
-      discount: couponDiscount,
-      couponCode: coupon?.code || null,
+      discount: safeDiscount,
+      couponCode: coupon?.code ? String(coupon.code).slice(0, 32) : null,
       shippingFee,
       codFee,
       deliverySpeed,
@@ -167,10 +184,10 @@ export default function CheckoutPage() {
       const channelLabel = rzpRes.paymentChannel ? ` (${rzpRes.paymentChannel})` : '';
       const createdOrder = await createOrder(
         buildOrderPayload({
-          paymentMethod: `razorpay${channelLabel}`,
+          paymentMethod: `razorpay${channelLabel}`.slice(0, 60),
           paymentStatus: 'paid',
-          razorpayOrderId: verifyData.razorpayOrderId,
-          razorpayPaymentId: verifyData.razorpayPaymentId,
+          razorpayOrderId: String(verifyData.razorpayOrderId || '').slice(0, 120),
+          razorpayPaymentId: String(verifyData.razorpayPaymentId || '').slice(0, 120),
           status: 'confirmed',
         })
       );
@@ -203,8 +220,8 @@ export default function CheckoutPage() {
     setSubmitting(true);
     setFormError('');
 
-    // Cash on Delivery Flow
-    if (paymentMethod === 'cod') {
+    // Cash on Delivery Flow (only when COD is enabled by store config)
+    if (activePaymentMethod === 'cod' && codEnabled) {
       try {
         const createdOrder = await createOrder(
           buildOrderPayload({
@@ -254,7 +271,7 @@ export default function CheckoutPage() {
             email: form.email.trim(),
             contact: form.phone.replace(/\D/g, '').slice(-10),
           },
-          theme: { color: '#09090B' },
+          theme: { color: '#0B0B0C' },
           handler: async (rzpRes) => {
             await finalizeRazorpayOrder(rzpRes);
           },
@@ -284,14 +301,17 @@ export default function CheckoutPage() {
   };
 
   const handleApplyPromo = async (e) => {
-    e.preventDefault();
-    if (!promoInput.trim()) return;
+    e?.preventDefault?.();
+    if (!promoInput.trim() || applyingPromo) return;
     setPromoError('');
+    setApplyingPromo(true);
     try {
       await applyCouponCode(promoInput);
       setPromoInput('');
     } catch (err) {
       setPromoError(err.message || 'Invalid promo code.');
+    } finally {
+      setApplyingPromo(false);
     }
   };
 
@@ -299,10 +319,12 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-[70vh] bg-obsidian text-bone flex items-center justify-center px-4 py-16">
         <div className="card-dark max-w-md w-full p-8 text-center space-y-4">
-          <ShoppingBag className="w-10 h-10 text-acid mx-auto" />
+          <ShoppingBag className="w-10 h-10 text-bone mx-auto" />
           <h1 className="font-display font-bold text-2xl uppercase">Nothing to Checkout</h1>
           <p className="text-sm text-ash">
-            Your Doffor bag is empty. Add your Drop 04 pieces first to proceed to Razorpay or COD checkout.
+            {codEnabled
+              ? 'Your Doffor bag is empty. Add your Drop 04 pieces first to proceed to Razorpay or COD checkout.'
+              : 'Your Doffor bag is empty. Add your Drop 04 pieces first to proceed to Razorpay checkout.'}
           </p>
           <Link href="/shop" className="btn-acid w-full">
             Shop Drop 04
@@ -316,11 +338,11 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-obsidian text-bone pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 border-b border-white/[0.08]">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-8 border-b border-black/10">
           <div>
             <Link
               href="/cart"
-              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ash hover:text-acid transition-colors mb-3"
+              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ash hover:text-bone transition-colors mb-3"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Bag
             </Link>
@@ -328,7 +350,7 @@ export default function CheckoutPage() {
               Secure Checkout
             </h1>
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-acid bg-acid/10 border border-acid/30 px-3 py-1.5 rounded-sm">
+          <div className="inline-flex items-center gap-2 font-mono text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-sm">
             <Lock className="w-3.5 h-3.5" /> 256-Bit Encrypted • Razorpay Verified
           </div>
         </div>
@@ -337,7 +359,7 @@ export default function CheckoutPage() {
           {/* Left 7 cols: Shipping, Delivery, Payment */}
           <div className="lg:col-span-7 space-y-6">
             {formError && (
-              <div className="p-4 rounded-sm bg-crimson/15 border border-crimson/40 flex items-start gap-3 text-sm text-bone">
+              <div className="p-4 rounded-sm bg-red-50 border border-red-200 flex items-start gap-3 text-sm text-red-900">
                 <AlertCircle className="w-5 h-5 text-crimson shrink-0 mt-0.5" />
                 <span>{formError}</span>
               </div>
@@ -345,9 +367,9 @@ export default function CheckoutPage() {
 
             {/* Step 1: Shipping Details */}
             <section className="card-dark p-6 space-y-5">
-              <div className="flex items-center justify-between gap-2 pb-3 border-b border-white/[0.08]">
+              <div className="flex items-center justify-between gap-2 pb-3 border-b border-black/10">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-6 h-6 rounded-sm bg-acid text-obsidian font-mono text-xs font-bold flex items-center justify-center">
+                  <span className="w-6 h-6 rounded-sm bg-bone text-obsidian font-mono text-xs font-bold flex items-center justify-center">
                     1
                   </span>
                   <h2 className="font-display font-bold text-base uppercase tracking-wider">
@@ -355,7 +377,7 @@ export default function CheckoutPage() {
                   </h2>
                 </div>
                 {!user && (
-                  <Link href="/auth" className="font-mono text-[11px] text-acid hover:underline">
+                  <Link href="/auth" className="font-mono text-[11px] font-semibold text-bone hover:underline">
                     Have an account? Sign in
                   </Link>
                 )}
@@ -369,6 +391,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    maxLength={120}
                     value={form.fullName}
                     onChange={(e) => handleChange('fullName', e.target.value)}
                     placeholder="e.g. Arjun Sharma"
@@ -395,7 +418,7 @@ export default function CheckoutPage() {
                     10-Digit Mobile Number *
                   </label>
                   <div className="flex">
-                    <span className="inline-flex items-center px-3 bg-surface border border-r-0 border-white/15 rounded-l-sm font-mono text-xs text-ash">
+                    <span className="inline-flex items-center px-3 bg-surface border border-r-0 border-black/20 rounded-l-sm font-mono text-xs text-bone font-medium">
                       +91
                     </span>
                     <input
@@ -417,6 +440,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    maxLength={300}
                     value={form.line1}
                     onChange={(e) => handleChange('line1', e.target.value)}
                     placeholder="Flat 402, Skyline Towers, Indiranagar"
@@ -430,6 +454,7 @@ export default function CheckoutPage() {
                   </label>
                   <input
                     type="text"
+                    maxLength={200}
                     value={form.landmark}
                     onChange={(e) => handleChange('landmark', e.target.value)}
                     placeholder="Near Metro Gate 2, Opposite Park"
@@ -444,6 +469,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    maxLength={100}
                     value={form.city}
                     onChange={(e) => handleChange('city', e.target.value)}
                     placeholder="Bengaluru / Mumbai / New Delhi"
@@ -462,7 +488,7 @@ export default function CheckoutPage() {
                     className="input-dark"
                   >
                     {INDIAN_STATES.map((st) => (
-                      <option key={st} value={st} className="bg-obsidian text-bone">
+                      <option key={st} value={st} className="bg-white text-bone">
                         {st}
                       </option>
                     ))}
@@ -485,8 +511,8 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex items-end">
-                  <div className="w-full p-2.5 rounded-sm bg-surface border border-white/10 flex items-center gap-2 text-xs text-ash">
-                    <MapPin className="w-4 h-4 text-acid shrink-0" />
+                  <div className="w-full p-2.5 rounded-sm bg-white border border-black/10 flex items-center gap-2 text-xs text-ash">
+                    <MapPin className="w-4 h-4 text-bone shrink-0" />
                     <span>BlueDart & Delhivery Air Express</span>
                   </div>
                 </div>
@@ -495,8 +521,8 @@ export default function CheckoutPage() {
 
             {/* Step 2: Delivery Speed */}
             <section className="card-dark p-6 space-y-4">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.08]">
-                <span className="w-6 h-6 rounded-sm bg-acid text-obsidian font-mono text-xs font-bold flex items-center justify-center">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-black/10">
+                <span className="w-6 h-6 rounded-sm bg-bone text-obsidian font-mono text-xs font-bold flex items-center justify-center">
                   2
                 </span>
                 <h2 className="font-display font-bold text-base uppercase tracking-wider">
@@ -510,16 +536,22 @@ export default function CheckoutPage() {
                   onClick={() => setDeliverySpeed('standard')}
                   className={`p-4 rounded-sm border text-left transition-all ${
                     deliverySpeed === 'standard'
-                      ? 'border-acid bg-acid/10'
-                      : 'border-white/10 bg-obsidian hover:border-white/25'
+                      ? 'border-bone bg-white ring-1 ring-bone'
+                      : 'border-black/10 bg-white/70 hover:border-black/30'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="inline-flex items-center gap-1.5 font-display font-bold text-sm uppercase">
-                      <Truck className="w-4 h-4 text-acid" /> Standard Delivery
+                      <Truck className="w-4 h-4 text-bone" /> Standard Delivery
                     </span>
-                    <span className="font-mono text-xs font-bold text-acid">
-                      {standardShippingFee === 0 ? 'FREE' : formatINR(standardShippingFee)}
+                    <span
+                      className={`font-mono text-xs font-bold ${
+                        effectiveStandardShippingFee === 0 ? 'text-emerald-800' : 'text-bone'
+                      }`}
+                    >
+                      {effectiveStandardShippingFee === 0
+                        ? 'FREE'
+                        : formatINR(effectiveStandardShippingFee)}
                     </span>
                   </div>
                   <p className="text-xs text-ash">
@@ -532,16 +564,20 @@ export default function CheckoutPage() {
                   onClick={() => setDeliverySpeed('express')}
                   className={`p-4 rounded-sm border text-left transition-all ${
                     deliverySpeed === 'express'
-                      ? 'border-acid bg-acid/10'
-                      : 'border-white/10 bg-obsidian hover:border-white/25'
+                      ? 'border-bone bg-white ring-1 ring-bone'
+                      : 'border-black/10 bg-white/70 hover:border-black/30'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="inline-flex items-center gap-1.5 font-display font-bold text-sm uppercase">
-                      <Zap className="w-4 h-4 text-acid" /> Express 48hr Air
+                      <Zap className="w-4 h-4 text-bone" /> Express 48hr Air
                     </span>
-                    <span className="font-mono text-xs font-bold text-bone">
-                      {formatINR(expressFee)}
+                    <span
+                      className={`font-mono text-xs font-bold ${
+                        expressFee === 0 ? 'text-emerald-800' : 'text-bone'
+                      }`}
+                    >
+                      {expressFee === 0 ? 'FREE' : formatINR(expressFee)}
                     </span>
                   </div>
                   <p className="text-xs text-ash">
@@ -553,8 +589,8 @@ export default function CheckoutPage() {
 
             {/* Step 3: Payment Method */}
             <section className="card-dark p-6 space-y-4">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.08]">
-                <span className="w-6 h-6 rounded-sm bg-acid text-obsidian font-mono text-xs font-bold flex items-center justify-center">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-black/10">
+                <span className="w-6 h-6 rounded-sm bg-bone text-obsidian font-mono text-xs font-bold flex items-center justify-center">
                   3
                 </span>
                 <h2 className="font-display font-bold text-base uppercase tracking-wider">
@@ -567,9 +603,9 @@ export default function CheckoutPage() {
                 <label
                   onClick={() => setPaymentMethod('razorpay')}
                   className={`block p-4 rounded-sm border cursor-pointer transition-all ${
-                    paymentMethod === 'razorpay'
-                      ? 'border-acid bg-acid/10'
-                      : 'border-white/10 bg-obsidian hover:border-white/25'
+                    activePaymentMethod === 'razorpay'
+                      ? 'border-bone bg-white ring-1 ring-bone'
+                      : 'border-black/10 bg-white/70 hover:border-black/30'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -577,16 +613,16 @@ export default function CheckoutPage() {
                       <input
                         type="radio"
                         name="paymentMethod"
-                        checked={paymentMethod === 'razorpay'}
+                        checked={activePaymentMethod === 'razorpay'}
                         onChange={() => setPaymentMethod('razorpay')}
-                        className="mt-1 accent-[#e8ff2a]"
+                        className="mt-1 accent-[#0B0B0C]"
                       />
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="font-display font-bold text-sm uppercase flex items-center gap-1.5">
-                            <CreditCard className="w-4 h-4 text-acid" /> Razorpay Instant Pay
+                            <CreditCard className="w-4 h-4 text-bone" /> Razorpay Instant Pay
                           </span>
-                          <span className="px-2 py-0.5 rounded-sm bg-acid text-obsidian font-mono text-[10px] font-bold uppercase">
+                          <span className="px-2 py-0.5 rounded-sm bg-bone text-obsidian font-mono text-[10px] font-bold uppercase">
                             Recommended
                           </span>
                         </div>
@@ -595,42 +631,49 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     </div>
-                    <span className="font-mono text-xs font-bold text-acid shrink-0">₹0 Fee</span>
+                    <span className="font-mono text-xs font-bold text-emerald-800 shrink-0">₹0 Fee</span>
                   </div>
                 </label>
 
-                {/* COD Option */}
-                <label
-                  onClick={() => setPaymentMethod('cod')}
-                  className={`block p-4 rounded-sm border cursor-pointer transition-all ${
-                    paymentMethod === 'cod'
-                      ? 'border-acid bg-acid/10'
-                      : 'border-white/10 bg-obsidian hover:border-white/25'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        checked={paymentMethod === 'cod'}
-                        onChange={() => setPaymentMethod('cod')}
-                        className="mt-1 accent-[#e8ff2a]"
-                      />
-                      <div>
-                        <span className="font-display font-bold text-sm uppercase flex items-center gap-1.5">
-                          <Banknote className="w-4 h-4 text-bone" /> Cash on Delivery (COD)
-                        </span>
-                        <p className="text-xs text-ash mt-1">
-                          Pay via cash or UPI at your doorstep upon delivery. Additional COD handling charge applies.
-                        </p>
+                {/* COD Option — hidden if disabled by Admin in Site Customizer */}
+                {codEnabled && (
+                  <label
+                    onClick={() => setPaymentMethod('cod')}
+                    className={`block p-4 rounded-sm border cursor-pointer transition-all ${
+                      activePaymentMethod === 'cod'
+                        ? 'border-bone bg-white ring-1 ring-bone'
+                        : 'border-black/10 bg-white/70 hover:border-black/30'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          checked={activePaymentMethod === 'cod'}
+                          onChange={() => setPaymentMethod('cod')}
+                          className="mt-1 accent-[#0B0B0C]"
+                        />
+                        <div>
+                          <span className="font-display font-bold text-sm uppercase flex items-center gap-1.5">
+                            <Banknote className="w-4 h-4 text-bone" /> Cash on Delivery (COD)
+                          </span>
+                          <p className="text-xs text-ash mt-1">
+                            Pay via cash or UPI at your doorstep upon delivery.
+                            {codFeeAmount > 0 ? ' Additional COD handling charge applies.' : ''}
+                          </p>
+                        </div>
                       </div>
+                      <span
+                        className={`font-mono text-xs font-bold shrink-0 ${
+                          codFeeAmount === 0 ? 'text-emerald-800' : 'text-bone'
+                        }`}
+                      >
+                        {codFeeAmount === 0 ? 'FREE' : `+${formatINR(codFeeAmount)}`}
+                      </span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-bone shrink-0">
-                      +{formatINR(codFeeAmount)}
-                    </span>
-                  </div>
-                </label>
+                  </label>
+                )}
               </div>
             </section>
           </div>
@@ -638,7 +681,7 @@ export default function CheckoutPage() {
           {/* Right 5 cols: Sticky Order Summary */}
           <aside className="lg:col-span-5 lg:sticky lg:top-24 space-y-4">
             <div className="card-dark p-6 space-y-5">
-              <h2 className="font-display font-bold text-lg uppercase tracking-wider pb-3 border-b border-white/[0.08]">
+              <h2 className="font-display font-bold text-lg uppercase tracking-wider pb-3 border-b border-black/10">
                 Order Review ({items.reduce((s, i) => s + i.quantity, 0)})
               </h2>
 
@@ -646,9 +689,9 @@ export default function CheckoutPage() {
               <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                 {items.map((item) => (
                   <div key={item.key} className="flex gap-3 items-center">
-                    <div className="relative w-14 h-16 rounded-sm overflow-hidden bg-surface border border-white/10 shrink-0">
+                    <div className="relative w-14 h-16 rounded-sm overflow-hidden bg-surface border border-black/10 shrink-0">
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                      <span className="absolute -top-0.5 -right-0.5 bg-acid text-obsidian font-mono text-[10px] font-bold px-1.5 rounded-bl-sm">
+                      <span className="absolute -top-0.5 -right-0.5 bg-bone text-obsidian font-mono text-[10px] font-bold px-1.5 rounded-bl-sm">
                         x{item.quantity}
                       </span>
                     </div>
@@ -668,16 +711,16 @@ export default function CheckoutPage() {
               </div>
 
               {/* Promo Code Mini Box */}
-              <div className="pt-4 border-t border-white/[0.08]">
+              <div className="pt-4 border-t border-black/10">
                 {coupon ? (
-                  <div className="flex items-center justify-between p-2.5 rounded-sm bg-acid/10 border border-acid/35">
-                    <span className="font-mono text-xs text-acid font-bold flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> {coupon.code} (-{formatINR(couponDiscount)})
+                  <div className="flex items-center justify-between p-2.5 rounded-sm bg-emerald-50 border border-emerald-200">
+                    <span className="font-mono text-xs text-emerald-800 font-bold flex items-center gap-1.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> {coupon.code} (-{formatINR(safeDiscount)})
                     </span>
                     <button
                       type="button"
                       onClick={removeCoupon}
-                      className="text-ash hover:text-bone p-0.5"
+                      className="text-emerald-800/70 hover:text-emerald-950 p-0.5"
                       aria-label="Remove coupon"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -695,6 +738,12 @@ export default function CheckoutPage() {
                             setPromoInput(e.target.value.toUpperCase());
                             if (promoError) setPromoError('');
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleApplyPromo(e);
+                            }
+                          }}
                           placeholder="Promo code (DOFFOR10)"
                           className="input-dark pl-8 py-2 text-xs font-mono uppercase"
                         />
@@ -702,9 +751,10 @@ export default function CheckoutPage() {
                       <button
                         type="button"
                         onClick={handleApplyPromo}
-                        className="btn-outline py-2 px-4 text-[11px]"
+                        disabled={applyingPromo || !promoInput.trim()}
+                        className="btn-outline py-2 px-4 text-[11px] disabled:opacity-50"
                       >
-                        Apply
+                        {applyingPromo ? '...' : 'Apply'}
                       </button>
                     </div>
                     {promoError && <p className="font-mono text-[11px] text-crimson">{promoError}</p>}
@@ -713,20 +763,24 @@ export default function CheckoutPage() {
               </div>
 
               {/* Totals */}
-              <div className="pt-4 border-t border-white/[0.08] space-y-2.5 text-sm">
+              <div className="pt-4 border-t border-black/10 space-y-2.5 text-sm">
                 <div className="flex justify-between text-ash">
                   <span>Bag Subtotal</span>
                   <span className="font-mono text-bone">{formatINR(subtotal)}</span>
                 </div>
-                {couponDiscount > 0 && (
-                  <div className="flex justify-between text-acid">
-                    <span className="font-mono text-xs uppercase">Discount ({coupon?.code})</span>
-                    <span className="font-mono font-bold">-{formatINR(couponDiscount)}</span>
+                {safeDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-800">
+                    <span className="font-mono text-xs uppercase font-semibold">Discount ({coupon?.code})</span>
+                    <span className="font-mono font-bold">-{formatINR(safeDiscount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-ash">
                   <span>{deliverySpeed === 'express' ? 'Express 48hr Air' : 'Standard Shipping'}</span>
-                  <span className={`font-mono ${shippingFee === 0 ? 'text-acid font-semibold' : 'text-bone'}`}>
+                  <span
+                    className={`font-mono ${
+                      shippingFee === 0 ? 'text-emerald-800 font-semibold' : 'text-bone'
+                    }`}
+                  >
                     {shippingFee === 0 ? 'FREE' : formatINR(shippingFee)}
                   </span>
                 </div>
@@ -738,10 +792,10 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              <div className="pt-4 border-t border-white/[0.08]">
+              <div className="pt-4 border-t border-black/10">
                 <div className="flex items-baseline justify-between">
                   <span className="font-display font-bold uppercase">Total Payable</span>
-                  <span className="font-mono font-bold text-2xl text-acid">
+                  <span className="font-mono font-bold text-2xl text-bone">
                     {formatINR(finalTotal)}
                   </span>
                 </div>
@@ -759,7 +813,7 @@ export default function CheckoutPage() {
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" /> Processing Order...
                   </>
-                ) : paymentMethod === 'razorpay' ? (
+                ) : activePaymentMethod === 'razorpay' ? (
                   <>
                     <Lock className="w-4 h-4" /> Pay {formatINR(finalTotal)} with Razorpay
                   </>
@@ -771,7 +825,7 @@ export default function CheckoutPage() {
               </button>
 
               <div className="flex items-center justify-center gap-2 text-[11px] font-mono text-ash pt-1">
-                <ShieldCheck className="w-4 h-4 text-acid" />
+                <ShieldCheck className="w-4 h-4 text-emerald-800" />
                 <span>Verified Doffor Clothing Direct Checkout</span>
               </div>
             </div>
