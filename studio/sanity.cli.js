@@ -6,4 +6,7 @@ export default defineCliConfig({
     dataset: 'production',
   },
   studioHost: 'doffor-clothing',
+  deployment: {
+    autoUpdates: false,
+  },
 });

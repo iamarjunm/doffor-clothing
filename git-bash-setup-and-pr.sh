@@ -18,11 +18,11 @@ echo "-> Syncing all 14 brand & product assets into public/images/..."
 node scripts/sync-assets.mjs
 
 # 4. Install dependencies & verify Next.js production build
-echo "-> Installing npm dependencies..."
-npm install
+echo "-> Installing dependencies with pnpm..."
+pnpm install
 
 echo "-> Running Next.js production build check..."
-npm run build
+pnpm build
 
 # 5. Connect GitHub CLI (prompts interactive browser login if not signed in)
 echo ""

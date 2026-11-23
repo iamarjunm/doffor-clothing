@@ -1,0 +1,526 @@
+[
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "name",
+        "type": "string",
+        "title": "Product Name"
+      },
+      {
+        "options": {
+          "source": "name",
+          "maxLength": 96
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "slug",
+        "type": "slug"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "sku",
+        "type": "string",
+        "title": "SKU"
+      },
+      {
+        "name": "subtitle",
+        "type": "string"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "Full-Sleeves",
+              "value": "full-sleeves"
+            },
+            {
+              "title": "Oversized Tees",
+              "value": "oversized-tees"
+            },
+            {
+              "title": "Muscle Tanks",
+              "value": "muscle-tanks"
+            },
+            {
+              "title": "Limited Drops",
+              "value": "limited-drops"
+            }
+          ]
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "full-sleeves",
+                  "oversized-tees",
+                  "muscle-tanks",
+                  "limited-drops"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "category",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              },
+              {
+                "flag": "min",
+                "constraint": 0
+              }
+            ]
+          }
+        ],
+        "name": "price",
+        "type": "number",
+        "title": "Price (INR ₹)"
+      },
+      {
+        "name": "compareAtPrice",
+        "type": "number",
+        "title": "Compare-At Price (INR ₹)"
+      },
+      {
+        "initialValue": 260,
+        "name": "gsm",
+        "type": "number",
+        "title": "Fabric Weight (GSM)"
+      },
+      {
+        "initialValue": "Boxy Oversized",
+        "name": "fit",
+        "type": "string",
+        "title": "Fit Silhouette"
+      },
+      {
+        "name": "fabric",
+        "type": "string",
+        "title": "Fabric Composition"
+      },
+      {
+        "name": "printTech",
+        "type": "string",
+        "title": "Print Technique"
+      },
+      {
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "badges",
+        "type": "array"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "min",
+                "constraint": 1
+              }
+            ]
+          }
+        ],
+        "of": [
+          {
+            "options": {
+              "hotspot": true
+            },
+            "type": "image"
+          }
+        ],
+        "name": "images",
+        "type": "array",
+        "title": "Product Gallery Images"
+      },
+      {
+        "of": [
+          {
+            "fields": [
+              {
+                "name": "name",
+                "type": "string",
+                "title": "Color Name"
+              },
+              {
+                "name": "hex",
+                "type": "string",
+                "title": "Hex Code"
+              },
+              {
+                "options": {
+                  "hotspot": true
+                },
+                "name": "image",
+                "type": "image",
+                "title": "Colorway Photo"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "name": "colors",
+        "type": "array",
+        "title": "Colorways"
+      },
+      {
+        "fields": [
+          {
+            "initialValue": 10,
+            "name": "S",
+            "type": "number",
+            "title": "Small (S)"
+          },
+          {
+            "initialValue": 20,
+            "name": "M",
+            "type": "number",
+            "title": "Medium (M)"
+          },
+          {
+            "initialValue": 20,
+            "name": "L",
+            "type": "number",
+            "title": "Large (L)"
+          },
+          {
+            "initialValue": 15,
+            "name": "XL",
+            "type": "number",
+            "title": "Extra Large (XL)"
+          },
+          {
+            "initialValue": 5,
+            "name": "XXL",
+            "type": "number",
+            "title": "2XL (XXL)"
+          }
+        ],
+        "name": "sizes",
+        "type": "object",
+        "title": "Size Inventory Matrix"
+      },
+      {
+        "rows": 4,
+        "name": "description",
+        "type": "text"
+      },
+      {
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "highlights",
+        "type": "array"
+      },
+      {
+        "initialValue": false,
+        "name": "featured",
+        "type": "boolean",
+        "title": "Featured on Home"
+      },
+      {
+        "initialValue": true,
+        "name": "isNewDrop",
+        "type": "boolean",
+        "title": "New Drop"
+      },
+      {
+        "initialValue": false,
+        "name": "bestseller",
+        "type": "boolean"
+      },
+      {
+        "initialValue": true,
+        "name": "active",
+        "type": "boolean",
+        "title": "Active / Visible"
+      }
+    ],
+    "preview": {
+      "select": {
+        "title": "name",
+        "subtitle": "sku",
+        "media": "images.0"
+      }
+    },
+    "name": "product",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "lookNumber",
+        "type": "string",
+        "title": "Look Number (e.g. LOOK 01)"
+      },
+      {
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "title",
+        "type": "string",
+        "title": "Editorial Title"
+      },
+      {
+        "initialValue": "Drop 04 — Archive Grunge",
+        "name": "season",
+        "type": "string",
+        "title": "Drop / Season"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "validation": [
+          {
+            "level": "error",
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ]
+          }
+        ],
+        "name": "primaryImage",
+        "type": "image",
+        "title": "Primary Editorial Photo"
+      },
+      {
+        "options": {
+          "hotspot": true
+        },
+        "name": "secondaryImage",
+        "type": "image",
+        "title": "Secondary Detail Photo"
+      },
+      {
+        "rows": 3,
+        "name": "stylingNotes",
+        "type": "text"
+      },
+      {
+        "name": "modelSpecs",
+        "type": "string",
+        "title": "Model & Fit Notes"
+      },
+      {
+        "of": [
+          {
+            "to": [
+              {
+                "type": "product"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to product"
+          }
+        ],
+        "name": "featuredProducts",
+        "type": "array",
+        "title": "Shoppable Pieces in This Look"
+      },
+      {
+        "initialValue": 1,
+        "name": "orderRank",
+        "type": "number",
+        "title": "Display Order"
+      }
+    ],
+    "preview": {
+      "select": {
+        "title": "title",
+        "subtitle": "lookNumber",
+        "media": "primaryImage"
+      }
+    },
+    "name": "lookbook",
+    "type": "document",
+    "title": "Lookbook Editorial Spread"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": "DOFFOR",
+        "name": "brandWordmark",
+        "type": "string"
+      },
+      {
+        "initialValue": true,
+        "name": "announcementEnabled",
+        "type": "boolean",
+        "title": "Show Announcement Bar"
+      },
+      {
+        "name": "announcementText",
+        "type": "string"
+      },
+      {
+        "fields": [
+          {
+            "name": "eyebrow",
+            "type": "string"
+          },
+          {
+            "name": "headlineLine1",
+            "type": "string"
+          },
+          {
+            "name": "headlineLine2",
+            "type": "string"
+          },
+          {
+            "rows": 3,
+            "name": "description",
+            "type": "text"
+          },
+          {
+            "options": {
+              "hotspot": true
+            },
+            "name": "image",
+            "type": "image",
+            "title": "Hero Campaign Image"
+          }
+        ],
+        "name": "hero",
+        "type": "object",
+        "title": "Hero Campaign"
+      },
+      {
+        "of": [
+          {
+            "fields": [
+              {
+                "name": "eyebrow",
+                "type": "string"
+              },
+              {
+                "name": "title",
+                "type": "string"
+              },
+              {
+                "name": "href",
+                "type": "string",
+                "title": "Target Link"
+              },
+              {
+                "options": {
+                  "hotspot": true
+                },
+                "name": "image",
+                "type": "image",
+                "title": "Banner Image"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "name": "editorialSplit",
+        "type": "array",
+        "title": "50/50 Editorial Split Banners"
+      },
+      {
+        "of": [
+          {
+            "fields": [
+              {
+                "name": "caption",
+                "type": "string"
+              },
+              {
+                "options": {
+                  "hotspot": true
+                },
+                "name": "image",
+                "type": "image",
+                "title": "Photo"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "name": "lookbookStrip",
+        "type": "array",
+        "title": "Homepage Lookbook Strip"
+      }
+    ],
+    "name": "siteSettings",
+    "type": "document",
+    "title": "Site Settings & Theme"
+  }
+]

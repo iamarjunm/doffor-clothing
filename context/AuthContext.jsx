@@ -52,6 +52,7 @@ export function AuthProvider({ children }) {
           uid: fbUser.uid,
           name: extra.name || fbUser.displayName || fbUser.email?.split('@')[0] || 'Doffor Member',
           email: fbUser.email,
+          emailVerified: Boolean(fbUser.emailVerified),
           avatar: fbUser.photoURL || extra.avatar || '',
           phone: extra.phone || '',
           city: extra.city || '',
@@ -60,7 +61,12 @@ export function AuthProvider({ children }) {
           createdAt: extra.createdAt || new Date().toISOString(),
         };
 
-        await upsertUserRecord(merged);
+        try {
+          const { emailVerified: _ev, ...firestoreProfile } = merged;
+          await upsertUserRecord(firestoreProfile);
+        } catch (err) {
+          console.warn('[Auth] User profile sync skipped:', err.message);
+        }
         setUser(merged);
         setLoading(false);
       });
@@ -116,10 +122,18 @@ export function AuthProvider({ children }) {
             createdAt: new Date().toISOString(),
           };
 
-      await upsertUserRecord(profile);
+      try {
+        await upsertUserRecord(profile);
+      } catch (err) {
+        console.warn('[Auth] Google profile sync warning:', err.message);
+      }
       const effectiveRole =
         existing?.role === 'admin' || isEmailAdmin(fbUser.email) ? 'admin' : 'customer';
-      const hydratedUser = { ...profile, role: effectiveRole };
+      const hydratedUser = {
+        ...profile,
+        role: effectiveRole,
+        emailVerified: Boolean(fbUser.emailVerified),
+      };
       setUser(hydratedUser);
       return hydratedUser;
     }

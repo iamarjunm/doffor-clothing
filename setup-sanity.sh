@@ -16,13 +16,13 @@ node scripts/upload-assets-to-sanity.mjs
 
 echo "-> Step 3/3: Installing Sanity Studio & deploying schemas..."
 cd studio
-npm install
-npx sanity schema deploy --yes || echo "   Note: Run 'cd studio && npx sanity login && npx sanity schema deploy' if prompted to authenticate Studio CLI."
+pnpm install
+pnpm dlx sanity schema deploy --yes || echo "   Note: Run 'cd studio && pnpm exec sanity login && pnpm exec sanity schema deploy' if prompted to authenticate Studio CLI."
 
 echo ""
 echo "============================================================"
 echo "  ✅ SANITY CDN & SCHEMAS LIVE FOR DOFFOR CLOTHING!"
 echo "============================================================"
 echo "  • All 14 images are now hosted on https://cdn.sanity.io/images/mwmriieg/production/..."
-echo "  • Run 'cd studio && npm run dev' anytime to open Sanity Studio locally"
-echo "  • Restart 'npm run dev' in root and click 'Seed Firestore Catalog' in /admin to sync CDN URLs to Firestore!"
+echo "  • Run 'cd studio && pnpm dev' anytime to open Sanity Studio locally"
+echo "  • Restart 'pnpm dev' in root and click 'Seed Firestore Catalog' in /admin to sync CDN URLs to Firestore!"
