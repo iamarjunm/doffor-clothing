@@ -1062,19 +1062,28 @@ export default function AdminPage() {
                   DOFFOR COMMAND CENTER
                 </h1>
                 {backendMode === 'firebase' ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 font-mono text-[10px] font-bold uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm bg-emerald-50 border border-emerald-300 text-emerald-800 font-mono text-[10px] font-bold uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                     FIREBASE FIRESTORE LIVE
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm bg-amber-500/15 border border-amber-500/35 text-amber-300 font-mono text-[10px] font-bold uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm bg-amber-50 border border-amber-300 text-amber-800 font-mono text-[10px] font-bold uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse" />
                     LOCAL PREVIEW MODE (ADD FIREBASE ENV)
                   </span>
                 )}
               </div>
               <p className="font-mono text-[11px] text-ash">
-                Signed in as <span className="text-bone">{user?.name}</span> ({user?.email})
+                Signed in as <span className="text-bone font-medium">{user?.name}</span> ({user?.email})
+                {backendMode === 'firebase' && (
+                  <>
+                    {' '}• Provider: <span className="text-bone uppercase">{user?.provider || 'unknown'}</span>
+                    {' '}• Verified:{' '}
+                    <span className={user?.emailVerified ? 'text-emerald-700 font-semibold' : 'text-red-700 font-semibold'}>
+                      {user?.emailVerified ? 'YES' : 'NO'}
+                    </span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -1085,7 +1094,7 @@ export default function AdminPage() {
                 type="button"
                 onClick={handleSeedFirestore}
                 disabled={seeding}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-sm bg-emerald-500/15 border border-emerald-500/35 text-emerald-300 hover:bg-emerald-500/25 font-mono text-[11px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-sm bg-emerald-50 border border-emerald-300 text-emerald-800 hover:bg-emerald-100 font-mono text-[11px] font-bold uppercase tracking-wider transition-colors disabled:opacity-50"
               >
                 <Database className={`w-3.5 h-3.5 ${seeding ? 'animate-pulse' : ''}`} />
                 {seeding ? 'Seeding...' : 'Seed Firestore Catalog'}
@@ -1112,6 +1121,22 @@ export default function AdminPage() {
           </div>
         </div>
       </header>
+
+      {backendMode === 'firebase' && user && !user.emailVerified && (
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div className="p-4 bg-amber-50 border border-amber-300 text-amber-900 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+              <span>
+                <strong>Unverified Email Session:</strong> Firestore security rules require a verified Google Sign-In (<code>emailVerified: true</code>) for bootstrap admin writes. Sign out and sign in using <strong>Continue with Google</strong> with <code>arjunhero38@gmail.com</code>.
+              </span>
+            </div>
+            <Link href="/auth" className="btn-acid py-1.5 px-3 text-[10px]">
+              Switch to Google Sign-In
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* ================================================== */}
       {/* 3. SIDEBAR + MAIN WORKSPACE                        */}
