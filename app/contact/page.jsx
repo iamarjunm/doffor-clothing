@@ -21,7 +21,7 @@ import { submitInquiry } from '../../lib/dataService';
 const FAQS = [
   {
     q: 'How do Doffor oversized tees and full-sleeves fit?',
-    a: 'All Drop 04 tees and full-sleeves are cut on our custom boxy drop-shoulder block. Order your usual size for our signature oversized street drape, or size down once for a closer regular fit. Check our interactive Size Guide for exact height/weight recommendations.',
+    a: 'All Doffor tees and full-sleeves are cut on our custom boxy drop-shoulder block. Order your usual size for our signature oversized street drape, or size down once for a closer regular fit. Check our interactive Size Guide for exact height/weight recommendations.',
   },
   {
     q: 'Will the 240–280 GSM cotton shrink or will the back print crack?',

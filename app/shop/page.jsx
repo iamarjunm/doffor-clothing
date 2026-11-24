@@ -14,14 +14,6 @@ import { useStore } from '../../context/StoreContext';
 import ProductCard from '../../components/ProductCard';
 import { formatINR } from '../../lib/format';
 
-const CATEGORIES = [
-  { id: 'all', label: 'All Silhouettes' },
-  { id: 'full-sleeves', label: 'Full-Sleeves' },
-  { id: 'oversized-tees', label: 'Oversized Tees' },
-  { id: 'muscle-tanks', label: 'Muscle Tanks' },
-  { id: 'limited-drops', label: 'Limited Drops' },
-];
-
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 const GSM_OPTIONS = ['All', '240', '260', '280'];
 
@@ -34,7 +26,15 @@ const SORT_OPTIONS = [
 ];
 
 export default function ShopPage() {
-  const { products, loading } = useStore();
+  const { products, config, loading } = useStore();
+
+  const categories = useMemo(
+    () => [
+      { id: 'all', label: 'All Silhouettes' },
+      ...(config.categories || []).map((c) => ({ id: c.id, label: c.label })),
+    ],
+    [config.categories]
+  );
 
   const [category, setCategory] = useState('all');
   const [selectedSize, setSelectedSize] = useState('');
@@ -115,7 +115,7 @@ export default function ShopPage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <div className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.22em] text-acid mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> DROP 04 // FULL ARCHIVE CATALOG
+                <Sparkles className="w-3.5 h-3.5" /> {(config.collectionLabel || 'Full Collection').toUpperCase()} // CATALOG
               </div>
               <h1 className="font-display font-extrabold text-4xl sm:text-6xl uppercase tracking-tight">
                 Shop All Pieces
@@ -140,7 +140,7 @@ export default function ShopPage() {
         {/* Top Category Pills + Mobile Filter Toggle */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            {CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const active = category === cat.id;
               return (
                 <button
@@ -320,8 +320,8 @@ export default function ShopPage() {
               Try widening your size, GSM, or price filters
             </h3>
             <p className="text-sm text-ash max-w-md mx-auto">
-              Every Drop 04 piece is produced in small batches. Reset filters to explore all
-              available heavyweight silhouettes.
+              Every piece in {config.collectionLabel || 'our collection'} is produced in small
+              batches. Reset filters to explore all available heavyweight silhouettes.
             </p>
             <div className="pt-2">
               <button type="button" onClick={resetFilters} className="btn-acid">
@@ -347,7 +347,7 @@ export default function ShopPage() {
             href="/lookbook"
             className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-acid hover:underline"
           >
-            View Drop 04 Lookbook <ArrowRight className="w-3.5 h-3.5" />
+            View Editorial Lookbook <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </section>

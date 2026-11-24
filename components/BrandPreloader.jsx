@@ -360,7 +360,9 @@ export default function BrandPreloader() {
             <div className="flex items-center gap-4 text-[10px] uppercase tracking-[0.24em] text-white/45">
               <span>Editorial Collection</span>
               <span className="hidden sm:inline text-white/20">/</span>
-              <span className="hidden sm:inline text-white/35">Drop 04 — 2026</span>
+              <span className="hidden sm:inline text-white/35">
+                {config?.collectionLabel || 'Core Collection'}
+              </span>
             </div>
 
             <div className="flex items-baseline gap-1 font-display font-light text-white">

@@ -264,7 +264,7 @@ export default function CheckoutPage() {
           amount: data.amount,
           currency: data.currency || 'INR',
           name: 'Doffor Clothing',
-          description: 'Drop 04 Order',
+          description: 'Doffor Clothing Order',
           order_id: data.razorpayOrderId,
           prefill: {
             name: form.fullName.trim(),
@@ -323,11 +323,11 @@ export default function CheckoutPage() {
           <h1 className="font-display font-bold text-2xl uppercase">Nothing to Checkout</h1>
           <p className="text-sm text-ash">
             {codEnabled
-              ? 'Your Doffor bag is empty. Add your Drop 04 pieces first to proceed to Razorpay or COD checkout.'
-              : 'Your Doffor bag is empty. Add your Drop 04 pieces first to proceed to Razorpay checkout.'}
+              ? 'Your Doffor bag is empty. Add pieces from our collection first to proceed to Razorpay or COD checkout.'
+              : 'Your Doffor bag is empty. Add pieces from our collection first to proceed to Razorpay checkout.'}
           </p>
           <Link href="/shop" className="btn-acid w-full">
-            Shop Drop 04
+            Shop Collection
           </Link>
         </div>
       </div>

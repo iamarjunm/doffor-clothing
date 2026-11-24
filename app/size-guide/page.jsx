@@ -106,7 +106,7 @@ export default function SizeGuidePage() {
       relaxed:
         'Cleaner shoulder line with moderate chest room while retaining Doffor’s structured heavyweight drape.',
       oversized:
-        'Our signature Drop 04 silhouette—dropped shoulder seam, elbow-skimming sleeves, and architectural boxy volume.',
+        'Our signature Doffor silhouette—dropped shoulder seam, elbow-skimming sleeves, and architectural boxy volume.',
       baggy:
         'Maximum street-editorial drape with extra length and wide torso sweep for heavy layering.',
     };
@@ -155,7 +155,7 @@ export default function SizeGuidePage() {
                   <SlidersHorizontal className="w-3.5 h-3.5" /> Interactive Fit Engine
                 </p>
                 <h2 className="font-display font-bold text-2xl text-bone mt-1">
-                  Find Your Drop 04 Size
+                  Find Your Doffor Size
                 </h2>
               </div>
               <span className="font-mono text-xs text-ash hidden sm:inline">
@@ -281,7 +281,7 @@ export default function SizeGuidePage() {
 
             <div className="space-y-3">
               <Link href="/shop" className="btn-acid w-full">
-                Shop Size {recommendation.size} In Drop 04 <ArrowRight className="w-4 h-4" />
+                Shop Size {recommendation.size} Collection <ArrowRight className="w-4 h-4" />
               </Link>
               <p className="text-[11px] font-mono text-center text-ash">
                 Between sizes? Free 7-day size exchange on every order.

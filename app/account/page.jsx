@@ -122,7 +122,7 @@ function AccountContent() {
               Sign In To Your Account
             </h1>
             <p className="text-sm text-ash max-w-sm mx-auto">
-              View your Drop 04 order history, download GST invoices, access your saved wishlist, and check out faster with Google Sign-In.
+              View your Doffor order history, download GST invoices, access your saved wishlist, and check out faster with Google Sign-In.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -243,7 +243,7 @@ function AccountContent() {
                   Orders placed with <span className="text-bone font-mono">{user.email}</span> will show up here with live courier tracking and downloadable tax invoices.
                 </p>
                 <Link href="/shop" className="btn-acid">
-                  Shop Drop 04 <ArrowRight className="w-4 h-4" />
+                  Shop Collection <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             ) : (
@@ -344,7 +344,7 @@ function AccountContent() {
                 <Heart className="w-10 h-10 text-bone mx-auto" />
                 <h2 className="font-display font-bold text-xl uppercase">Your Wishlist Is Empty</h2>
                 <p className="text-sm text-ash max-w-md mx-auto">
-                  Tap the heart icon on any Drop 04 piece to save it here for quick size-adds later.
+                  Tap the heart icon on any Doffor piece to save it here for quick size-adds later.
                 </p>
                 <Link href="/shop" className="btn-acid">
                   Browse Archive <ArrowRight className="w-4 h-4" />

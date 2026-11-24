@@ -177,7 +177,7 @@ export default function ProductDetailPage() {
             Silhouette Archived or Sold Out
           </h1>
           <p className="text-sm text-ash">
-            We couldn&apos;t find this exact piece in Drop 04. Explore our active heavyweights in
+            We couldn&apos;t find this exact piece in our latest collection. Explore our active heavyweights in
             the catalog.
           </p>
           <div className="pt-2 flex justify-center gap-3">

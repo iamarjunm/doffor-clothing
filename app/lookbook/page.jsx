@@ -18,7 +18,7 @@ import { formatINR } from '../../lib/format';
 const EDITORIAL_LOOKS = [
   {
     number: 'LOOK 01',
-    code: 'D04 // ARCHIVE WING',
+    code: 'DFR // ARCHIVE WING',
     title: 'NOCTURNE BACK-PRINT UNIFORM',
     location: 'CONCRETE ROOFTOP • 22:15 IST',
     productId: 'prod-angel-fullsleeve',
@@ -33,7 +33,7 @@ const EDITORIAL_LOOKS = [
   },
   {
     number: 'LOOK 02',
-    code: 'D04 // MYTHIC POSTER',
+    code: 'DFR // MYTHIC POSTER',
     title: 'ANCIENT DRAGON HEAVY DRAPE',
     location: 'UNDERGROUND PARKING DECK • BENGALURU',
     productId: 'prod-unleash-dragon',
@@ -48,7 +48,7 @@ const EDITORIAL_LOOKS = [
   },
   {
     number: 'LOOK 03',
-    code: 'D04 // ZINE BOOTLEG',
+    code: 'DFR // ZINE BOOTLEG',
     title: 'SEPT 21, 1993 GRUNGE COLLAGE',
     location: 'AFTER-HOURS STUDIO • MUMBAI',
     productId: 'prod-in-utero-bootleg',
@@ -63,7 +63,7 @@ const EDITORIAL_LOOKS = [
   },
   {
     number: 'LOOK 04',
-    code: 'D04 // SCULPTURAL VEST',
+    code: 'DFR // SCULPTURAL VEST',
     title: 'HEAVYWEIGHT BOX-CUT MUSCLE TANK',
     location: 'INDUSTRIAL COURTYARD • NEW DELHI',
     productId: 'prod-vintage-muscle-tank',
@@ -78,7 +78,7 @@ const EDITORIAL_LOOKS = [
   },
   {
     number: 'LOOK 05',
-    code: 'D04 // ACID SLASH',
+    code: 'DFR // ACID SLASH',
     title: 'WINGED ANGEL ACID-YELLOW HALF-SLEEVE',
     location: 'LATE TRANSIT CORRIDOR • PUNE',
     productId: 'prod-angel-halfsleeve',
@@ -93,9 +93,9 @@ const EDITORIAL_LOOKS = [
   },
   {
     number: 'LOOK 06',
-    code: 'D04 // NUMBERED 100 PCS',
+    code: 'DFR // NUMBERED 100 PCS',
     title: 'ARCHIVE PALETTE PIGMENT FULL-SLEEVE',
-    location: 'DOFFOR ARCHIVE RACK • STUDIO 04',
+    location: 'DOFFOR ARCHIVE RACK • BENGALURU STUDIO',
     productId: 'prod-angel-rack-edition',
     primaryImage: '/images/real-angel-fullsleeve-rack.jpg',
     secondaryImage: '/images/product-dragon-fullsleeve.jpg',
@@ -149,7 +149,7 @@ export default function LookbookPage() {
         <div className="absolute inset-0">
           <img
             src="/images/hero-campaign.jpg"
-            alt="Doffor Drop 04 Archive Grunge Campaign"
+            alt="Doffor Archive Grunge Campaign"
             className="w-full h-full object-cover opacity-50 scale-[1.02]"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0C] via-[#0B0B0C]/70 to-[#0B0B0C]/45" />
@@ -159,7 +159,7 @@ export default function LookbookPage() {
           <div className="flex flex-wrap items-center justify-between gap-4 mb-10 border-b border-white/20 pb-5">
             <div className="flex items-center gap-3">
               <span className="px-2.5 py-1 bg-white text-[#0B0B0C] font-mono text-[11px] font-bold uppercase tracking-widest rounded-sm">
-                ISSUE 04
+                CORE ARCHIVE
               </span>
               <span className="font-mono text-xs uppercase tracking-[0.25em] text-white/75">
                 AUTUMN / WINTER ARCHIVE EDITORIAL
@@ -176,7 +176,7 @@ export default function LookbookPage() {
                 DOFFOR CLOTHING PRESENTS
               </p>
               <h1 className="font-condensed text-6xl sm:text-7xl lg:text-[7.5rem] leading-[0.88] tracking-tight uppercase text-white">
-                DROP 04:{' '}
+                DOFFOR:{' '}
                 <span className="text-white/85 block sm:inline">ARCHIVE GRUNGE</span>
               </h1>
               <p className="text-base sm:text-lg text-white/80 max-w-2xl leading-relaxed">
@@ -445,7 +445,7 @@ export default function LookbookPage() {
               <Layers className="w-4 h-4" /> Complete The Rotation
             </span>
             <h2 className="font-condensed text-4xl sm:text-5xl uppercase tracking-tight">
-              EXPLORE THE FULL DROP 04 ARCHIVE
+              EXPLORE THE FULL DOFFOR ARCHIVE
             </h2>
             <p className="text-sm sm:text-base text-ash">
               Free pan-India express shipping above ₹1,499. Use code{' '}
@@ -455,7 +455,7 @@ export default function LookbookPage() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/shop" className="btn-acid">
-              Shop All Drop 04 <ArrowRight className="w-4 h-4" />
+              Shop Full Collection <ArrowRight className="w-4 h-4" />
             </Link>
             <Link href="/size-guide" className="btn-outline">
               Fit Calculator

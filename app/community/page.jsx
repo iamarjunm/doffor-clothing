@@ -31,7 +31,7 @@ const PERK_CODES = [
     code: 'DOFFOR10',
     badge: 'COMMUNITY DROP CODE',
     discount: '10% OFF',
-    minOrder: 'Valid on Drop 04 orders above ₹799 • Max savings ₹500',
+    minOrder: 'Valid on Doffor orders above ₹799 • Max savings ₹500',
     description:
       'Share with your crew or use on your next heavyweight full-sleeve, bootleg oversized tee, or boxy muscle tank pickup.',
   },
@@ -388,7 +388,7 @@ export default function CommunityPage() {
                       Submit Another Brief
                     </button>
                     <Link href="/shop" className="btn-acid">
-                      Browse Drop 04 <ArrowRight className="w-4 h-4" />
+                      Browse Collection <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </div>

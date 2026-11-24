@@ -21,25 +21,17 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useStore } from '../context/StoreContext';
 
-const SILHOUETTE_LINKS = [
-  { label: 'Shop All', href: '/shop', category: 'all' },
-  { label: 'Full-Sleeves', href: '/collections/full-sleeves', category: 'full-sleeves' },
-  { label: 'Oversized Tees', href: '/collections/oversized-tees', category: 'oversized-tees' },
-  { label: 'Muscle Tanks', href: '/collections/muscle-tanks', category: 'muscle-tanks' },
-  { label: 'Limited Archive', href: '/collections/limited-drops', category: 'limited-drops' },
-];
-
 const SPEC_LINKS = [
   { label: '240 GSM Everyday', detail: 'Combed Bio-Washed', href: '/shop?gsm=240' },
   { label: '260 GSM Heavyweight', detail: 'Structured Drop-Shoulder', href: '/shop?gsm=260' },
   { label: '280 GSM Interlock', detail: 'Ultra-Dense Jersey', href: '/shop?gsm=280' },
   { label: 'Size & Fit Guide', detail: 'Boxy Unisex Grading', href: '/size-guide' },
-  { label: 'Drop 04 Lookbook', detail: 'Autumn / Winter Archive', href: '/lookbook' },
+  { label: 'Latest Lookbook', detail: 'Editorial Archive', href: '/lookbook' },
 ];
 
 const SHOP_EDITORIAL_CARDS = [
   {
-    eyebrow: 'Drop 04 Signature',
+    eyebrow: 'Signature Series',
     title: 'Winged Angel Series',
     spec: '260 GSM Heavyweight Jersey',
     image: '/images/real-angel-fullsleeve-black.jpg',
@@ -51,41 +43,6 @@ const SHOP_EDITORIAL_CARDS = [
     spec: '260–280 GSM Statement Cut',
     image: '/images/real-dragon-fullsleeve.jpg',
     href: '/collections/full-sleeves',
-  },
-];
-
-const COLLECTION_CARDS = [
-  {
-    title: 'Full-Sleeves',
-    category: 'full-sleeves',
-    gsmTag: '260–280 GSM',
-    subtitle: 'Drop-shoulder ribbed long sleeves',
-    image: '/images/real-angel-fullsleeve-rack.jpg',
-    href: '/collections/full-sleeves',
-  },
-  {
-    title: 'Oversized Tees',
-    category: 'oversized-tees',
-    gsmTag: '240 GSM',
-    subtitle: 'Boxy bio-washed everyday rotation',
-    image: '/images/real-bootleg-tee.jpg',
-    href: '/collections/oversized-tees',
-  },
-  {
-    title: 'Muscle Tanks',
-    category: 'muscle-tanks',
-    gsmTag: '240 GSM',
-    subtitle: 'Sculptural extended shoulder vests',
-    image: '/images/real-muscle-tank.jpg',
-    href: '/collections/muscle-tanks',
-  },
-  {
-    title: 'Limited Archive',
-    category: 'limited-drops',
-    gsmTag: 'SMALL-BATCH',
-    subtitle: 'Numbered pigment-dyed runs & packs',
-    image: '/images/product-angel-fullsleeve.jpg',
-    href: '/collections/limited-drops',
   },
 ];
 
@@ -120,6 +77,29 @@ export default function Navbar() {
   const activeProducts = Array.isArray(products)
     ? products.filter((p) => p.active !== false)
     : [];
+
+  const collectionLabel = config.collectionLabel || 'Core Collection';
+  const navCategories = Array.isArray(config.categories)
+    ? config.categories.filter((c) => c.showInNav !== false)
+    : [];
+
+  const silhouetteLinks = [
+    { label: 'Shop All', href: '/shop', category: 'all' },
+    ...navCategories.map((c) => ({
+      label: c.label,
+      href: `/collections/${c.id}`,
+      category: c.id,
+    })),
+  ];
+
+  const collectionCards = navCategories.map((c) => ({
+    title: c.label,
+    category: c.id,
+    gsmTag: (c.spec || '').split('•')[0]?.trim() || 'HEAVYWEIGHT',
+    subtitle: c.subtitle || c.description || '',
+    image: c.banner || '/images/hero-campaign.jpg',
+    href: `/collections/${c.id}`,
+  }));
 
   const getCategoryCount = (category) => {
     if (category === 'all') return activeProducts.length;
@@ -278,7 +258,7 @@ export default function Navbar() {
           >
             <p className="text-[10px] font-medium tracking-[0.22em] uppercase truncate max-w-5xl mx-auto opacity-95">
               {config.announcementText ||
-                'Complimentary Express Shipping on Orders Above ₹1,499 — Drop 04 Now Live'}
+                `Complimentary Express Shipping on Orders Above ₹1,499 — ${collectionLabel} Now Live`}
             </p>
           </div>
         )}
@@ -611,7 +591,7 @@ export default function Navbar() {
                         Silhouettes
                       </p>
                       <ul className="space-y-1">
-                        {SILHOUETTE_LINKS.map((item) => {
+                        {silhouetteLinks.map((item) => {
                           const count = getCategoryCount(item.category);
                           return (
                             <li key={item.href}>
@@ -674,7 +654,7 @@ export default function Navbar() {
 
                     <div className="pt-6 border-t border-black/[0.08]">
                       <p className="text-[10px] uppercase tracking-[0.2em] text-[#6B6A66]">
-                        {config.dropTitle || 'DROP 04 // ARCHIVE GRUNGE'}
+                        {config.dropTitle || `DOFFOR // ${collectionLabel.toUpperCase()}`}
                       </p>
                     </div>
                   </div>
@@ -726,7 +706,7 @@ export default function Navbar() {
                       Curated Capsules
                     </p>
                     <h3 className="font-display text-sm uppercase tracking-[0.2em] font-semibold text-[#0B0B0C] mt-1">
-                      Drop 04 — Four Core Silhouettes
+                      {collectionLabel} — Curated Silhouettes
                     </h3>
                   </div>
                   <Link
@@ -739,8 +719,18 @@ export default function Navbar() {
                   </Link>
                 </div>
 
-                <div className="grid grid-cols-4 gap-6">
-                  {COLLECTION_CARDS.map((col) => {
+                <div
+                  className={`grid gap-6 ${
+                    collectionCards.length === 1
+                      ? 'grid-cols-1 max-w-sm'
+                      : collectionCards.length === 2
+                      ? 'grid-cols-2'
+                      : collectionCards.length === 3
+                      ? 'grid-cols-3'
+                      : 'grid-cols-4'
+                  }`}
+                >
+                  {collectionCards.map((col) => {
                     const count = getCategoryCount(col.category);
                     return (
                       <Link
@@ -829,17 +819,17 @@ export default function Navbar() {
                       <div className="col-span-7 relative min-h-[300px] overflow-hidden">
                         <img
                           src="/images/lookbook-campus-1.jpg"
-                          alt="Drop 04 Manifesto"
+                          alt="Doffor Manifesto"
                           className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                         />
                       </div>
                       <div className="col-span-5 p-8 flex flex-col justify-between">
                         <div>
                           <p className="text-[10px] uppercase tracking-[0.24em] text-[#6B6A66]">
-                            Autumn / Winter Archive
+                            {collectionLabel}
                           </p>
                           <h4 className="font-display text-xl uppercase tracking-[0.1em] font-semibold text-[#0B0B0C] mt-3 leading-snug">
-                            Drop 04 Manifesto
+                            Doffor Manifesto
                           </h4>
                           <p className="text-xs text-[#6B6A66] leading-relaxed mt-3">
                             Heavyweight forms engineered with super-combed bio-washed cotton, boxy drop shoulders, and archival screen print craft.
@@ -905,7 +895,7 @@ export default function Navbar() {
             >
               <span className="inline-flex items-center gap-2.5 text-[11px] uppercase tracking-[0.18em] text-[#6B6A66]">
                 <Search className="w-4 h-4 stroke-[1.6] text-[#0B0B0C]" />
-                Search Drop 04...
+                Search Catalog...
               </span>
               <ArrowRight className="w-3.5 h-3.5 text-[#6B6A66]" />
             </button>
@@ -929,7 +919,7 @@ export default function Navbar() {
               {mobileSection === 'shop' && (
                 <div className="pt-3 pb-1 space-y-4">
                   <ul className="space-y-1">
-                    {SILHOUETTE_LINKS.map((item) => (
+                    {silhouetteLinks.map((item) => (
                       <li key={item.href}>
                         <Link
                           href={item.href}
@@ -981,7 +971,7 @@ export default function Navbar() {
 
               {mobileSection === 'collections' && (
                 <div className="pt-3 pb-1 grid grid-cols-2 gap-3">
-                  {COLLECTION_CARDS.map((col) => (
+                  {collectionCards.map((col) => (
                     <Link
                       key={col.href}
                       href={col.href}

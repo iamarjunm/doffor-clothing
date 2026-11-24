@@ -71,6 +71,7 @@ import {
   seedFirestoreCatalog,
   getBackendMode,
 } from '../../lib/dataService';
+import { DEFAULT_CATEGORIES } from '../../lib/catalog';
 import {
   formatINR,
   formatDate,
@@ -79,13 +80,6 @@ import {
 } from '../../lib/format';
 
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
-
-const CATEGORIES = [
-  { value: 'full-sleeves', label: 'Full-Sleeves' },
-  { value: 'oversized-tees', label: 'Oversized Tees' },
-  { value: 'muscle-tanks', label: 'Muscle Tanks' },
-  { value: 'limited-drops', label: 'Limited Drops' },
-];
 
 const FIT_OPTIONS = [
   'Boxy Oversized',
@@ -117,7 +111,7 @@ const EMPTY_PRODUCT_FORM = {
   fit: 'Boxy Oversized',
   fabric: '100% Super-Combed Bio-Washed Cotton',
   printTech: 'High-Density Vintage Screen Print',
-  badgesText: 'DROP 04',
+  badgesText: 'NEW IN',
   description: '',
   highlightsText: '',
   featured: false,
@@ -159,6 +153,14 @@ function getLowStockSizes(sizes = {}) {
 export default function AdminPage() {
   const { user, isAdmin, loading: authLoading, isFirebaseConfigured, loginWithEmail } = useAuth();
   const { config, pushToast, refreshStore } = useStore();
+
+  const categories = useMemo(() => {
+    const list =
+      Array.isArray(config?.categories) && config.categories.length
+        ? config.categories
+        : DEFAULT_CATEGORIES;
+    return list.map((c) => ({ value: c.id, label: c.label }));
+  }, [config]);
 
   const backendMode = getBackendMode();
 
@@ -331,21 +333,24 @@ export default function AdminPage() {
 
     // Revenue by Category
     const productById = new Map(products.map((p) => [p.id, p]));
-    const catTotals = {
-      'full-sleeves': { label: 'Full-Sleeves', revenue: 0, units: 0 },
-      'oversized-tees': { label: 'Oversized Tees', revenue: 0, units: 0 },
-      'muscle-tanks': { label: 'Muscle Tanks', revenue: 0, units: 0 },
-      'limited-drops': { label: 'Limited Drops', revenue: 0, units: 0 },
-    };
+    const catTotals = {};
+    categories.forEach((c) => {
+      catTotals[c.value] = { label: c.label, revenue: 0, units: 0 };
+    });
+    const fallbackCatKey = categories[0]?.value || 'oversized-tees';
 
     let totalItemRevenue = 0;
     validOrders.forEach((order) => {
       (order.items || []).forEach((item) => {
         const prod = productById.get(item.productId);
-        const catKey =
-          prod?.category && catTotals[prod.category]
-            ? prod.category
-            : 'oversized-tees';
+        const catKey = prod?.category || fallbackCatKey;
+        if (!catTotals[catKey]) {
+          catTotals[catKey] = {
+            label: prod?.categoryLabel || catKey,
+            revenue: 0,
+            units: 0,
+          };
+        }
         const lineRev = (Number(item.price) || 0) * (Number(item.quantity) || 1);
         catTotals[catKey].revenue += lineRev;
         catTotals[catKey].units += Number(item.quantity) || 1;
@@ -392,7 +397,7 @@ export default function AdminPage() {
       statusCounts,
       pendingCount,
     };
-  }, [orders, products, users]);
+  }, [orders, products, users, categories]);
 
   // ======================================================
   // FILTERED LISTS
@@ -477,7 +482,7 @@ export default function AdminPage() {
     try {
       await seedFirestoreCatalog();
       await Promise.all([loadAllData({ silent: true }), refreshStore()]);
-      pushToast('Firestore seeded with flagship Drop 04 catalog & coupons.', 'success');
+      pushToast('Firestore seeded with flagship Doffor catalog & coupons.', 'success');
     } catch (err) {
       pushToast(err.message || 'Firestore seed failed.', 'error');
     } finally {
@@ -491,9 +496,13 @@ export default function AdminPage() {
 
   // Product CRUD Handlers
   const openCreateProductModal = () => {
+    const defaultCategory = categories.some((c) => c.value === 'oversized-tees')
+      ? 'oversized-tees'
+      : categories[0]?.value || 'oversized-tees';
     setProductForm({
       ...EMPTY_PRODUCT_FORM,
-      sku: `DFR-D04-${Math.floor(1000 + Math.random() * 9000)}`,
+      category: defaultCategory,
+      sku: `DFR-${Math.floor(1000 + Math.random() * 9000)}`,
       colors: [{ name: 'Jet Black', hex: '#121215', image: '' }],
       sizes: { S: 12, M: 24, L: 20, XL: 14, XXL: 6 },
       images: [],
@@ -509,7 +518,7 @@ export default function AdminPage() {
       name: prod.name || '',
       sku: prod.sku || '',
       subtitle: prod.subtitle || '',
-      category: prod.category || 'oversized-tees',
+      category: prod.category || categories[0]?.value || 'oversized-tees',
       price: Number(prod.price) || 999,
       compareAtPrice: Number(prod.compareAtPrice) || 1499,
       gsm: Number(prod.gsm) || 260,
@@ -679,6 +688,10 @@ export default function AdminPage() {
           image: c.image?.trim() || primaryImage,
         }));
 
+      const matchedCategory = categories.find(
+        (c) => c.value === productForm.category
+      );
+
       const payload = {
         id: productForm.id || undefined,
         slug: productForm.slug || undefined,
@@ -686,6 +699,7 @@ export default function AdminPage() {
         sku: productForm.sku.trim(),
         subtitle: productForm.subtitle.trim(),
         category: productForm.category,
+        categoryLabel: matchedCategory?.label || productForm.category,
         price: Number(productForm.price) || 999,
         compareAtPrice: Number(productForm.compareAtPrice) || 1499,
         gsm: Number(productForm.gsm) || 260,
@@ -1219,7 +1233,7 @@ export default function AdminPage() {
                 className="btn-acid w-full py-2.5 text-[11px]"
               >
                 <Plus className="w-3.5 h-3.5" />
-                NEW DROP SKU
+                NEW PRODUCT SKU
               </button>
             </div>
           </div>
@@ -1296,7 +1310,7 @@ export default function AdminPage() {
                     </span>
                   </p>
                   <p className="font-mono text-[11px] text-ash mt-1.5">
-                    Live across Drop 04 catalog
+                    Live across {config?.collectionLabel || 'Core Collection'} catalog
                   </p>
                 </div>
 
@@ -1673,7 +1687,7 @@ export default function AdminPage() {
                     className="input-dark sm:w-48"
                   >
                     <option value="all">All Categories</option>
-                    {CATEGORIES.map((c) => (
+                    {categories.map((c) => (
                       <option key={c.value} value={c.value}>
                         {c.label}
                       </option>
@@ -1755,7 +1769,9 @@ export default function AdminPage() {
                             </td>
                             <td className="py-3.5 px-3 whitespace-nowrap">
                               <span className="px-2 py-0.5 rounded-sm bg-surface border border-white/10 font-mono text-[10px] uppercase text-bone">
-                                {p.categoryLabel || p.category}
+                                {categories.find((c) => c.value === p.category)?.label ||
+                                  p.categoryLabel ||
+                                  p.category}
                               </span>
                             </td>
                             <td className="py-3.5 px-3 font-mono text-xs text-bone whitespace-nowrap">
@@ -2428,7 +2444,7 @@ export default function AdminPage() {
                               code: e.target.value.toUpperCase(),
                             }))
                           }
-                          placeholder="DROP25"
+                          placeholder="DOFFOR25"
                           className="input-dark font-mono uppercase"
                         />
                       </div>
@@ -2523,7 +2539,7 @@ export default function AdminPage() {
                             description: e.target.value,
                           }))
                         }
-                        placeholder="e.g. 15% off Drop 04 orders above ₹999"
+                        placeholder="e.g. 15% off orders above ₹999"
                         className="input-dark"
                       />
                     </div>
@@ -2633,7 +2649,7 @@ export default function AdminPage() {
                       Live Storefront Settings
                     </h2>
                     <p className="font-mono text-[11px] text-ash">
-                      Changes publish immediately to navbar marquee, drop timer & checkout
+                      Changes publish immediately to announcement bar, release timer & checkout
                     </p>
                   </div>
 
@@ -2657,7 +2673,7 @@ export default function AdminPage() {
 
                     <div>
                       <label className="block font-mono text-[10px] uppercase text-ash mb-1.5">
-                        Drop Title
+                        Collection / Archive Title
                       </label>
                       <input
                         type="text"
@@ -2668,7 +2684,7 @@ export default function AdminPage() {
                             dropTitle: e.target.value,
                           }))
                         }
-                        placeholder="DROP 04 // ARCHIVE GRUNGE"
+                        placeholder="DOFFOR // CORE ARCHIVE"
                         className="input-dark font-mono text-xs"
                       />
                     </div>
@@ -2676,7 +2692,7 @@ export default function AdminPage() {
                     <div>
                       <label className="block font-mono text-[10px] uppercase text-ash mb-1.5 flex items-center gap-1.5">
                         <Clock className="w-3 h-3 text-acid" />
-                        Drop Countdown End Date & Time
+                        Release Countdown End Date & Time
                       </label>
                       <input
                         type="datetime-local"
@@ -2972,7 +2988,7 @@ export default function AdminPage() {
                         Newsletter ({newsletter.length})
                       </h3>
                       <p className="font-mono text-[11px] text-ash">
-                        Early Drop access mailing list
+                        Early release & archive mailing list
                       </p>
                     </div>
                     <button
@@ -3044,7 +3060,7 @@ export default function AdminPage() {
             <div className="px-6 py-4 bg-obsidian border-b border-white/10 flex items-center justify-between shrink-0">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-acid">
-                  {productForm.id ? 'EDIT CATALOG SKU' : 'LAUNCH NEW DROP SKU'}
+                  {productForm.id ? 'EDIT CATALOG SKU' : 'LAUNCH NEW PRODUCT SKU'}
                 </p>
                 <h2 className="font-display font-extrabold text-xl uppercase text-bone">
                   {productForm.id ? productForm.name || 'Edit Product' : 'Add New Product'}
@@ -3100,7 +3116,7 @@ export default function AdminPage() {
                           sku: e.target.value.toUpperCase(),
                         }))
                       }
-                      placeholder="DFR-D04-FS01"
+                      placeholder="DFR-FS01"
                       className="input-dark font-mono uppercase"
                     />
                   </div>
@@ -3138,11 +3154,17 @@ export default function AdminPage() {
                       }
                       className="input-dark"
                     >
-                      {CATEGORIES.map((c) => (
+                      {categories.map((c) => (
                         <option key={c.value} value={c.value}>
                           {c.label}
                         </option>
                       ))}
+                      {productForm.category &&
+                        !categories.some((c) => c.value === productForm.category) && (
+                          <option value={productForm.category}>
+                            {productForm.category}
+                          </option>
+                        )}
                     </select>
                   </div>
                 </div>
@@ -3264,7 +3286,7 @@ export default function AdminPage() {
                           badgesText: e.target.value,
                         }))
                       }
-                      placeholder="DROP 04, BESTSELLER, 260 GSM"
+                      placeholder="NEW IN, BESTSELLER, 260 GSM"
                       className="input-dark font-mono text-xs"
                     />
                   </div>
@@ -3312,7 +3334,7 @@ export default function AdminPage() {
                   {[
                     { key: 'active', label: 'Active (Visible on Store)' },
                     { key: 'featured', label: 'Featured' },
-                    { key: 'isNewDrop', label: 'New Drop' },
+                    { key: 'isNewDrop', label: 'New Arrival' },
                     { key: 'bestseller', label: 'Bestseller' },
                   ].map((flag) => (
                     <label

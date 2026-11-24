@@ -83,7 +83,7 @@ const PRODUCTION_STEPS = [
     location: 'PAN-INDIA FULFILLMENT',
     title: 'Reusable Archive Packaging',
     detail:
-      'Zero flimsy poly-wrap. Every order ships within 24–48 hours inside our matte-black reusable Doffor zip-lock garment pouch with Drop 04 archive stickers.',
+      'Zero flimsy poly-wrap. Every order ships within 24–48 hours inside our matte-black reusable Doffor zip-lock garment pouch with signature Doffor archive stickers.',
   },
 ];
 
@@ -115,7 +115,7 @@ export default function AboutPage() {
 
               <div className="flex flex-wrap gap-3 pt-2">
                 <Link href="/shop" className="btn-acid">
-                  Shop Drop 04 <ArrowRight className="w-4 h-4" />
+                  Shop Collection <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link href="/lookbook" className="btn-outline">
                   Explore Lookbook
@@ -143,7 +143,7 @@ export default function AboutPage() {
                 <div className="card-dark p-4">
                   <p className="font-condensed text-3xl text-bone">4.9 ★</p>
                   <p className="font-mono text-[10px] uppercase tracking-widest text-ash mt-1">
-                    Verified Drop 04 Rating
+                    Verified Customer Rating
                   </p>
                 </div>
                 <div className="rounded-sm overflow-hidden border border-white/10 aspect-[3/4] bg-charcoal">
@@ -255,7 +255,7 @@ export default function AboutPage() {
               <div className="rounded-sm overflow-hidden border border-white/10 aspect-[16/10] bg-obsidian">
                 <img
                   src="/images/real-angel-fullsleeve-rack.jpg"
-                  alt="Doffor Drop 04 Small-Batch Garment Rack"
+                  alt="Doffor Small-Batch Garment Rack"
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -305,14 +305,14 @@ export default function AboutPage() {
                 FEEL 260 GSM IN PERSON
               </h2>
               <p className="text-sm sm:text-base text-ash">
-                Step into Drop 04 or browse the Archive Grunge editorial lookbook to see how every
-                silhouette drapes in motion.
+                Step into our Core Collection or browse the Archive Grunge editorial lookbook to see
+                how every silhouette drapes in motion.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
               <Link href="/shop" className="btn-acid">
-                Shop Drop 04 <ArrowRight className="w-4 h-4" />
+                Shop Collection <ArrowRight className="w-4 h-4" />
               </Link>
               <Link href="/lookbook" className="btn-outline">
                 View Lookbook

@@ -12,94 +12,69 @@ rules_version = '2';
 //   - email: string (required for non-admin, valid email, <= 254 chars; non-admins cannot change)
 //   - emailVerified: bool (optional; synced by AuthContext profile updates)
 //   - role: string (optional on create; 'customer' | 'admin'; non-admins may ONLY set 'customer' or omit, and may NEVER modify on update)
-//   - provider: string (optional, 'google' | 'email')
+//   - provider: string (optional, 'google' | 'email'; immutable once set for non-admins)
 //   - avatar: string | null (optional, '' or valid image URL, <= 2048 chars)
 //   - phone: string | null (optional, <= 30 chars)
 //   - city: string | null (optional, <= 100 chars)
-//   - createdAt: string | timestamp (optional, ISO 8601 string or Firestore Timestamp, immutable once set)
+//   - createdAt: string | timestamp (optional, ISO 8601 string or Firestore Timestamp, immutable once set for non-admins)
 //   - updatedAt: string | timestamp (optional, ISO 8601 string or Firestore Timestamp)
 //
 // Collection: products
 // Document ID: {productId} (slug-style product ID, e.g. 'prod-angel-fullsleeve')
-// Fields:
-//   - id: string (optional on legacy docs, immutable once set, must equal productId, 1..160 chars)
-//   - slug: string | null (optional, <= 200 chars)
-//   - sku: string | null (optional, <= 100 chars)
-//   - name: string (required, 1..200 chars)
-//   - subtitle: string | null (optional, <= 300 chars)
-//   - category: string | null (optional, <= 100 chars)
-//   - categoryLabel: string | null (optional, <= 100 chars)
-//   - price: number | null (optional, 0..10000000)
-//   - compareAtPrice: number | null (optional, 0..20000000)
-//   - gsm: number | null (optional, 0..2000)
-//   - fit: string | null (optional, <= 120 chars)
-//   - fabric: string | null (optional, <= 300 chars)
-//   - printTech: string | null (optional, <= 300 chars)
-//   - featured: bool | null (optional)
-//   - isNewDrop: bool | null (optional)
-//   - bestseller: bool | null (optional)
-//   - active: bool | null (optional)
-//   - badges: list | null (optional, <= 30 items)
-//   - rating: number | null (optional, 0..5)
-//   - reviewCount: number | null (optional, 0..10000000)
-//   - images: list | null (optional, <= 30 items; accepts Sanity CDN https://, http://, or local / paths)
-//   - colors: list | null (optional, <= 30 items)
-//   - sizes: map | null (optional, <= 20 keys; standard size counts 0..1000000)
-//   - description: string | null (optional, <= 10000 chars)
-//   - highlights: list | null (optional, <= 40 items)
-//   - reviews: list | null (optional, <= 1000 items; signed-in users may prepend 1 validated review without altering other fields)
-//   - updatedAt: string | timestamp | null (optional)
-//   - createdAt: string | timestamp | null (optional)
+// Access:
+//   - Public read (catalog data, no PII)
+//   - Verified Admin full create, update, delete
+//   - Authenticated customers may ONLY prepend 1 validated review (updating reviews, reviewCount, rating, updatedAt)
 //
 // Collection: config
-// Document ID: 'storefront'
-// Fields:
-//   - brandName, brandWordmark, announcementEnabled, announcementText,
-//     announcementBg, announcementTextColor, dropTitle, dropCountdownEnd,
-//     freeShippingThreshold, standardShippingFee, expressShippingFee,
-//     codFee, codEnabled, theme, sections, hero, newArrivals,
-//     editorialSplit, silhouettes, craftStory, lookbookStrip, privilegeBar, footer
+// Document ID: {docId} (e.g. 'storefront')
+// Access:
+//   - Public read (theme, banners, shipping thresholds; no PII)
+//   - Verified Admin full write
 //
 // Collection: coupons
 // Document ID: {couponId}
-// Fields:
-//   - id: string (optional on legacy docs, immutable once set, must equal couponId, 1..120 chars)
-//   - code: string (required, 1..40 chars)
-//   - type: string (required, 'percent' | 'flat')
-//   - value: number (required, >= 0; <= 100 for 'percent', <= 1000000 for 'flat')
-//   - minOrder: number | null (optional, 0..10000000)
-//   - maxDiscount: number | null (optional, 0..10000000)
-//   - description: string | null (optional, <= 500 chars)
-//   - active: bool (required)
-//   - usageCount: number | null (optional, 0..100000000)
+// Access:
+//   - Public read (checkout promo validation; no PII)
+//   - Verified Admin full write
 //
 // Collection: orders
 // Document ID: {orderId}
-// Fields:
-//   - id: string (required on client create, immutable once set, must equal orderId)
-//   - orderNumber: string (required on client create, immutable once set, matches ^DFR-\d{4}-\d{4,6}$)
-//   - userId: string (required on client create, immutable once set; equals request.auth.uid if signed in, or 'guest' if unauthenticated)
+// Fields (strictly enforced on non-admin create):
+//   - id: string (required, must equal orderId, 1..100 chars)
+//   - orderNumber: string (required, matches ^DFR-\d{4}-\d{4,6}$)
+//   - userId: string (required; equals request.auth.uid if signed in, or 'guest' if unauthenticated)
 //   - customerName, customerEmail, customerPhone, shippingAddress, items,
 //     subtotal, discount, couponCode, shippingFee, codFee, deliverySpeed, total,
-//     paymentMethod, paymentStatus, razorpayOrderId, razorpayPaymentId,
-//     status, trackingNumber, createdAt
+//     paymentMethod, paymentStatus ('paid' | 'pending_cod'), razorpayOrderId, razorpayPaymentId,
+//     status ('processing' | 'confirmed'), trackingNumber ('' or omitted), createdAt
+// Access:
+//   - Read: Verified Admin or Order Owner (userId == auth.uid or verified customerEmail)
+//   - Create: Verified Admin, or strictly validated public/customer order
+//   - Update/Delete: Verified Admin only
 //
 // Collection: inquiries
 // Document ID: {inquiryId}
-// Fields:
-//   - id: string (required on client create, immutable once set, must equal inquiryId, 1..100 chars)
-//   - type: string (required on client create, 'support' | 'custom-collab')
+// Fields (strictly enforced on public create):
+//   - id: string (required, must equal inquiryId, 1..100 chars)
+//   - type: string (required, 'support' | 'custom-collab')
 //   - name: string (required, 1..100 chars)
 //   - email: string (required, valid email, <= 254 chars)
-//   - organization, quantity, orderNumber (optional strings)
+//   - organization, quantity, orderNumber (optional bounded strings)
 //   - message: string (required, 1..3000 chars)
-//   - createdAt: string | timestamp (required on client create, immutable once set)
+//   - createdAt: string (required, ISO 8601 date string)
+// Access:
+//   - Create: Verified Admin, or strictly validated public inquiry
+//   - Read/Update/Delete: Verified Admin only
 //
 // Collection: newsletter
 // Document ID: {subId} (normalized lowercase email address)
-// Fields:
-//   - email: string (required, immutable once set, valid lowercase email, must equal subId, <= 254 chars)
-//   - createdAt: string | timestamp (required, immutable once set)
+// Fields (strictly enforced on public create):
+//   - email: string (required, valid lowercase email, must equal subId, <= 254 chars)
+//   - createdAt: string (required, ISO 8601 date string)
+// Access:
+//   - Create: Verified Admin, or strictly validated public subscription
+//   - Read/Update/Delete: Verified Admin only
 //
 // ===============================================================
 
@@ -173,10 +148,6 @@ service cloud.firestore {
       return data.keys().hasOnly(fields);
     }
 
-    function areImmutableFieldsUnchanged(fields) {
-      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
-    }
-
     // Safe immutability check: if the field already exists (and is non-null) on the stored
     // document, it cannot be modified or deleted; if missing/null on a legacy doc, it may be backfilled.
     function isImmutableIfPresent(field) {
@@ -238,7 +209,6 @@ service cloud.firestore {
       return val is list && val.size() >= minSize && val.size() <= maxSize;
     }
 
-    // Nullable-safe helpers for admin validators (tolerate null/missing legacy fields while enforcing types & DoS bounds)
     function isValidNullableString(data, field, minLen, maxLen) {
       return !(field in data) ||
              data[field] == null ||
@@ -247,32 +217,11 @@ service cloud.firestore {
               data[field].size() <= maxLen);
     }
 
-    function isValidNullableBool(data, field) {
-      return !(field in data) || data[field] == null || data[field] is bool;
-    }
-
-    function isValidNullableNumber(data, field, minVal, maxVal) {
-      return !(field in data) ||
-             data[field] == null ||
-             (data[field] is number &&
-              data[field] >= minVal &&
-              data[field] <= maxVal);
-    }
-
-    function isValidNullableList(data, field, minSize, maxSize) {
-      return !(field in data) ||
-             data[field] == null ||
-             (data[field] is list &&
-              data[field].size() >= minSize &&
-              data[field].size() <= maxSize);
-    }
-
     // ===============================================================
-    // Domain Validators (Called in BOTH create and update rules)
+    // Non-Admin & Public Domain Validators
     // ===============================================================
 
-    // 1. Users Validators
-    // Strict validator for non-admin self-registration and profile updates
+    // 1. Users Validator (Strict validator for non-admin self-registration and profile updates)
     function isValidUser(data, userId) {
       let allowed = [
         'uid', 'name', 'email', 'emailVerified', 'role', 'provider',
@@ -294,80 +243,7 @@ service cloud.firestore {
              (!('updatedAt' in data) || data.updatedAt == null || isValidDateOrTimestamp(data.updatedAt));
     }
 
-    // Admin user validator (no brittle exact-key whitelist so role updates on legacy docs always succeed)
-    function isValidAdminUserWrite(data, userId) {
-      return data is map &&
-             data.size() >= 1 &&
-             data.size() <= 40 &&
-             (!('uid' in data) || (data.uid is string && data.uid == userId && data.uid.size() >= 1 && data.uid.size() <= 128)) &&
-             isValidNullableString(data, 'name', 0, 120) &&
-             (!('email' in data) || data.email == null || isValidEmail(data.email)) &&
-             isValidNullableBool(data, 'emailVerified') &&
-             (!('role' in data) || (data.role is string && data.role in ['customer', 'admin'])) &&
-             isValidNullableString(data, 'provider', 0, 40) &&
-             isValidNullableString(data, 'avatar', 0, 2048) &&
-             isValidNullableString(data, 'phone', 0, 30) &&
-             isValidNullableString(data, 'city', 0, 100) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt == '' || isValidDateOrTimestamp(data.createdAt)) &&
-             (!('updatedAt' in data) || data.updatedAt == null || data.updatedAt == '' || isValidDateOrTimestamp(data.updatedAt));
-    }
-
-    // 2. Products & Reviews Validators
-    function isValidSizeEntry(sizes, key) {
-      return !(key in sizes) ||
-             sizes[key] == null ||
-             (sizes[key] is number && sizes[key] >= 0 && sizes[key] <= 1000000);
-    }
-
-    function isValidAdminSizesMap(sizes) {
-      return sizes is map &&
-             sizes.size() <= 20 &&
-             isValidSizeEntry(sizes, 'XS') &&
-             isValidSizeEntry(sizes, 'S') &&
-             isValidSizeEntry(sizes, 'M') &&
-             isValidSizeEntry(sizes, 'L') &&
-             isValidSizeEntry(sizes, 'XL') &&
-             isValidSizeEntry(sizes, 'XXL') &&
-             isValidSizeEntry(sizes, '3XL');
-    }
-
-    // Admin product validator: enforces strong types, value ranges, and DoS/size bounds
-    // without brittle exact-key whitelists that reject legacy/merged fields or new CMS attributes.
-    function isValidAdminProduct(data, productId) {
-      return data is map &&
-             data.size() >= 1 &&
-             data.size() <= 60 &&
-             (!('id' in data) || (data.id is string && data.id == productId && data.id.size() >= 1 && data.id.size() <= 160)) &&
-             isValidNullableString(data, 'slug', 0, 200) &&
-             isValidNullableString(data, 'sku', 0, 100) &&
-             ('name' in data) && data.name is string && data.name.size() >= 1 && data.name.size() <= 200 &&
-             isValidNullableString(data, 'subtitle', 0, 300) &&
-             isValidNullableString(data, 'category', 0, 100) &&
-             isValidNullableString(data, 'categoryLabel', 0, 100) &&
-             isValidNullableNumber(data, 'price', 0, 10000000) &&
-             isValidNullableNumber(data, 'compareAtPrice', 0, 20000000) &&
-             isValidNullableNumber(data, 'gsm', 0, 2000) &&
-             isValidNullableString(data, 'fit', 0, 120) &&
-             isValidNullableString(data, 'fabric', 0, 300) &&
-             isValidNullableString(data, 'printTech', 0, 300) &&
-             isValidNullableBool(data, 'featured') &&
-             isValidNullableBool(data, 'isNewDrop') &&
-             isValidNullableBool(data, 'bestseller') &&
-             isValidNullableBool(data, 'active') &&
-             isValidNullableList(data, 'badges', 0, 30) &&
-             isValidNullableNumber(data, 'rating', 0, 5) &&
-             isValidNullableNumber(data, 'reviewCount', 0, 10000000) &&
-             isValidNullableList(data, 'images', 0, 30) &&
-             (!('images' in data) || data.images == null || data.images.size() == 0 || isValidImageUrl(data.images[0])) &&
-             isValidNullableList(data, 'colors', 0, 30) &&
-             (!('sizes' in data) || data.sizes == null || isValidAdminSizesMap(data.sizes)) &&
-             isValidNullableString(data, 'description', 0, 10000) &&
-             isValidNullableList(data, 'highlights', 0, 40) &&
-             isValidNullableList(data, 'reviews', 0, 1000) &&
-             (!('updatedAt' in data) || data.updatedAt == null || data.updatedAt == '' || isValidDateOrTimestamp(data.updatedAt)) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt == '' || isValidDateOrTimestamp(data.createdAt));
-    }
-
+    // 2. Customer Product Review Validators
     function isValidReview(rev) {
       let allowed = ['id', 'userName', 'city', 'rating', 'fitFeedback', 'comment', 'createdAt', 'verified'];
       let required = ['id', 'userName', 'rating', 'comment', 'createdAt'];
@@ -392,7 +268,7 @@ service cloud.firestore {
       let prevCount = ('reviewCount' in resource.data && resource.data.reviewCount is number) ? resource.data.reviewCount : 0;
       let nextReviews = ('reviews' in request.resource.data && request.resource.data.reviews is list) ? request.resource.data.reviews : [];
       return isAuthenticated() &&
-             isValidAdminProduct(request.resource.data, productId) &&
+             productId is string && productId.size() >= 1 &&
              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviews', 'reviewCount', 'rating', 'updatedAt']) &&
              ('reviews' in request.resource.data) &&
              request.resource.data.reviews is list &&
@@ -401,62 +277,16 @@ service cloud.firestore {
              isValidReview(nextReviews[0]) &&
              (prevReviews.size() == 0 || nextReviews[1:nextReviews.size()] == prevReviews) &&
              ('reviewCount' in request.resource.data) &&
+             request.resource.data.reviewCount is number &&
              request.resource.data.reviewCount == prevCount + 1 &&
              ('rating' in request.resource.data) &&
              request.resource.data.rating is number &&
              request.resource.data.rating >= 1 &&
              request.resource.data.rating <= 5 &&
-             (!('updatedAt' in request.resource.data) || isValidDateString(request.resource.data.updatedAt));
+             (!('updatedAt' in request.resource.data) || isValidDateOrTimestamp(request.resource.data.updatedAt));
     }
 
-    // 3. Storefront Config Validator (Admin-only writes; core type & DoS bounds without brittle key whitelists)
-    function isValidAdminStoreConfig(data) {
-      return data is map &&
-             data.size() >= 1 &&
-             data.size() <= 60 &&
-             isValidNullableString(data, 'brandName', 0, 120) &&
-             isValidNullableString(data, 'brandWordmark', 0, 80) &&
-             isValidNullableBool(data, 'announcementEnabled') &&
-             isValidNullableString(data, 'announcementText', 0, 500) &&
-             isValidNullableString(data, 'announcementBg', 0, 40) &&
-             isValidNullableString(data, 'announcementTextColor', 0, 40) &&
-             isValidNullableString(data, 'dropTitle', 0, 160) &&
-             (!('dropCountdownEnd' in data) || data.dropCountdownEnd == null || data.dropCountdownEnd == '' || isValidDateOrTimestamp(data.dropCountdownEnd)) &&
-             isValidNullableNumber(data, 'freeShippingThreshold', 0, 1000000) &&
-             isValidNullableNumber(data, 'standardShippingFee', 0, 100000) &&
-             isValidNullableNumber(data, 'expressShippingFee', 0, 100000) &&
-             isValidNullableNumber(data, 'codFee', 0, 100000) &&
-             isValidNullableBool(data, 'codEnabled') &&
-             (!('theme' in data) || data.theme == null || (data.theme is map && data.theme.size() <= 30)) &&
-             (!('sections' in data) || data.sections == null || (data.sections is map && data.sections.size() <= 30)) &&
-             (!('hero' in data) || data.hero == null || (data.hero is map && data.hero.size() <= 30)) &&
-             (!('newArrivals' in data) || data.newArrivals == null || (data.newArrivals is map && data.newArrivals.size() <= 20)) &&
-             isValidNullableList(data, 'editorialSplit', 0, 20) &&
-             isValidNullableList(data, 'silhouettes', 0, 24) &&
-             (!('craftStory' in data) || data.craftStory == null || (data.craftStory is map && data.craftStory.size() <= 30)) &&
-             isValidNullableList(data, 'lookbookStrip', 0, 40) &&
-             (!('privilegeBar' in data) || data.privilegeBar == null || (data.privilegeBar is map && data.privilegeBar.size() <= 20)) &&
-             (!('footer' in data) || data.footer == null || (data.footer is map && data.footer.size() <= 30));
-    }
-
-    // 4. Coupons Validator (Admin-only writes; core type, range & DoS bounds without brittle key whitelists)
-    function isValidAdminCoupon(data, couponId) {
-      return data is map &&
-             data.size() >= 1 &&
-             data.size() <= 30 &&
-             (!('id' in data) || (data.id is string && data.id == couponId && data.id.size() >= 1 && data.id.size() <= 120)) &&
-             ('code' in data) && data.code is string && data.code.size() >= 1 && data.code.size() <= 40 &&
-             ('type' in data) && data.type is string && data.type in ['percent', 'flat'] &&
-             ('value' in data) && data.value is number && data.value >= 0 &&
-             ((data.type == 'percent' && data.value <= 100) || (data.type == 'flat' && data.value <= 1000000)) &&
-             isValidNullableNumber(data, 'minOrder', 0, 10000000) &&
-             isValidNullableNumber(data, 'maxDiscount', 0, 10000000) &&
-             isValidNullableString(data, 'description', 0, 500) &&
-             ('active' in data) && data.active is bool &&
-             isValidNullableNumber(data, 'usageCount', 0, 100000000);
-    }
-
-    // 5. Orders Validators
+    // 3. Orders Validators (Strict validator for public/customer order creation)
     function isValidShippingAddress(addr) {
       let allowed = ['fullName', 'phone', 'line1', 'landmark', 'city', 'state', 'pincode'];
       let required = ['fullName', 'phone', 'line1', 'city', 'state', 'pincode'];
@@ -488,7 +318,6 @@ service cloud.firestore {
              item.price is number && item.price > 0 && item.price <= 500000;
     }
 
-    // Strict validator for public/customer order creation
     function isValidOrder(data, orderId) {
       let allowed = [
         'id', 'orderNumber', 'userId', 'customerName', 'customerEmail', 'customerPhone',
@@ -531,29 +360,6 @@ service cloud.firestore {
              isValidDateString(data.createdAt);
     }
 
-    // Admin order validator (ensures fulfillment/tracking updates work cleanly even on legacy orders)
-    function isValidAdminOrder(data, orderId) {
-      return data is map &&
-             data.size() >= 1 &&
-             data.size() <= 50 &&
-             (!('id' in data) || (data.id is string && data.id == orderId && data.id.size() >= 1 && data.id.size() <= 120)) &&
-             isValidNullableString(data, 'orderNumber', 0, 60) &&
-             isValidNullableString(data, 'userId', 0, 128) &&
-             isValidNullableString(data, 'customerName', 0, 160) &&
-             isValidNullableString(data, 'customerEmail', 0, 254) &&
-             isValidNullableString(data, 'customerPhone', 0, 30) &&
-             isValidNullableList(data, 'items', 0, 100) &&
-             isValidNullableNumber(data, 'subtotal', 0, 10000000) &&
-             isValidNullableNumber(data, 'discount', 0, 10000000) &&
-             isValidNullableNumber(data, 'shippingFee', 0, 100000) &&
-             isValidNullableNumber(data, 'codFee', 0, 100000) &&
-             isValidNullableNumber(data, 'total', 0, 10000000) &&
-             (!('status' in data) || (data.status is string && data.status in ['processing', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled'])) &&
-             (!('paymentStatus' in data) || (data.paymentStatus is string && data.paymentStatus in ['paid', 'pending_cod', 'pending', 'failed', 'refunded'])) &&
-             isValidNullableString(data, 'trackingNumber', 0, 150) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt == '' || isValidDateOrTimestamp(data.createdAt));
-    }
-
     function isOrderOwner() {
       return isAuthenticated() && (
         ('userId' in resource.data && resource.data.userId == request.auth.uid) ||
@@ -569,8 +375,7 @@ service cloud.firestore {
       );
     }
 
-    // 6. Inquiries Validators
-    // Strict validator for public inquiry submissions
+    // 4. Inquiries Validator (Strict validator for public inquiry submissions)
     function isValidInquiry(data, inquiryId) {
       let allowed = ['id', 'type', 'name', 'email', 'organization', 'quantity', 'orderNumber', 'message', 'createdAt'];
       let required = ['id', 'type', 'name', 'email', 'message', 'createdAt'];
@@ -587,26 +392,7 @@ service cloud.firestore {
              isValidDateString(data.createdAt);
     }
 
-    // Admin inquiry validator (supports status/notes updates without brittle exact-key rejections)
-    function isValidAdminInquiry(data, inquiryId) {
-      return data is map &&
-             data.size() >= 1 &&
-             data.size() <= 30 &&
-             (!('id' in data) || (data.id is string && data.id == inquiryId && data.id.size() >= 1 && data.id.size() <= 120)) &&
-             isValidNullableString(data, 'type', 0, 60) &&
-             isValidNullableString(data, 'name', 0, 120) &&
-             isValidNullableString(data, 'email', 0, 254) &&
-             isValidNullableString(data, 'organization', 0, 200) &&
-             isValidNullableString(data, 'quantity', 0, 120) &&
-             isValidNullableString(data, 'orderNumber', 0, 60) &&
-             isValidNullableString(data, 'message', 0, 5000) &&
-             isValidNullableString(data, 'status', 0, 60) &&
-             isValidNullableString(data, 'adminNotes', 0, 3000) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt == '' || isValidDateOrTimestamp(data.createdAt));
-    }
-
-    // 7. Newsletter Validators
-    // Strict validator for public newsletter subscriptions
+    // 5. Newsletter Validator (Strict validator for public newsletter subscriptions)
     function isValidNewsletterSub(data, subId) {
       let allowed = ['email', 'createdAt'];
       let required = ['email', 'createdAt'];
@@ -618,15 +404,6 @@ service cloud.firestore {
              isValidDateString(data.createdAt);
     }
 
-    // Admin newsletter validator
-    function isValidAdminNewsletterSub(data, subId) {
-      return data is map &&
-             data.size() >= 1 &&
-             data.size() <= 20 &&
-             (!('email' in data) || (isValidEmail(data.email) && data.email == data.email.lower() && data.email == subId)) &&
-             (!('createdAt' in data) || data.createdAt == null || data.createdAt == '' || isValidDateOrTimestamp(data.createdAt));
-    }
-
     // ===============================================================
     // Collection Rules
     // ===============================================================
@@ -636,31 +413,27 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin();
 
       // Anti-privilege escalation: Normal users signing up may ONLY set role == 'customer'
-      // (or omit role), NEVER 'admin'. Only an existing admin can create admin user docs.
-      allow create: if isAuthenticated() && (
-                         (isAdmin() && isValidAdminUserWrite(request.resource.data, userId)) || (
-                           isOwner(userId) &&
-                           isValidUser(request.resource.data, userId) &&
-                           uidUnchanged() &&
-                           (!('role' in request.resource.data) || request.resource.data.role == 'customer') &&
-                           (!('email' in request.auth.token) || request.resource.data.email.lower() == request.auth.token.email.lower())
-                         )
+      // (or omit role), NEVER 'admin'. Only an existing verified admin can create admin user docs.
+      allow create: if isAdmin() || (
+                         isOwner(userId) &&
+                         isValidUser(request.resource.data, userId) &&
+                         uidUnchanged() &&
+                         (!('role' in request.resource.data) || request.resource.data.role == 'customer') &&
+                         (!('email' in request.auth.token) || request.resource.data.email.lower() == request.auth.token.email.lower())
                        );
 
       // Anti-privilege escalation: Non-admin owners updating their profile (name, phone, city, avatar)
-      // may NEVER modify 'role' or escalate to 'admin'. Only an existing admin may update roles.
-      allow update: if isAuthenticated() &&
-                       uidNotModified() &&
-                       isImmutableIfPresent('createdAt') && (
-                         (isAdmin() && isValidAdminUserWrite(request.resource.data, userId)) || (
-                           isOwner(userId) &&
-                           isValidUser(request.resource.data, userId) &&
-                           ('email' in resource.data && resource.data.email is string && request.resource.data.email.lower() == resource.data.email.lower()) &&
-                           (!('provider' in resource.data) || request.resource.data.provider == resource.data.provider) &&
-                           (
-                             (!('role' in resource.data) && (!('role' in request.resource.data) || request.resource.data.role == 'customer')) ||
-                             ('role' in resource.data && 'role' in request.resource.data && request.resource.data.role == resource.data.role && request.resource.data.role == 'customer')
-                           )
+      // may NEVER modify 'role', 'uid', 'email', 'provider', or 'createdAt'.
+      allow update: if isAdmin() || (
+                         isOwner(userId) &&
+                         isValidUser(request.resource.data, userId) &&
+                         uidNotModified() &&
+                         isImmutableIfPresent('createdAt') &&
+                         isImmutableIfPresent('provider') &&
+                         ('email' in resource.data && resource.data.email is string && request.resource.data.email.lower() == resource.data.email.lower()) &&
+                         (
+                           (!('role' in resource.data) && (!('role' in request.resource.data) || request.resource.data.role == 'customer')) ||
+                           ('role' in resource.data && 'role' in request.resource.data && request.resource.data.role == resource.data.role && request.resource.data.role == 'customer')
                          )
                        );
 
@@ -674,47 +447,24 @@ service cloud.firestore {
     match /products/{productId} {
       allow read: if true;
 
-      allow create: if isAdmin() && isValidAdminProduct(request.resource.data, productId);
+      allow create, delete: if isAdmin();
 
-      // Admins have full validated update access (including stock updates, quick toggles, and edits).
+      // Verified admins have full update access (including stock updates, quick toggles, and edits).
       // Signed-in customers may ONLY prepend a single validated review without altering price,
       // stock, metadata, or prior reviews.
-      allow update: if (
-                         isAdmin() &&
-                         isValidAdminProduct(request.resource.data, productId) &&
-                         isImmutableIfPresent('id')
-                       ) ||
-                       isValidCustomerReviewUpdate(productId);
-
-      allow delete: if isAdmin();
+      allow update: if isAdmin() || isValidCustomerReviewUpdate(productId);
     }
 
-    // 3. STOREFRONT CONFIG (Public read for theme/shipping/banners; Admin-only write)
+    // 3. STOREFRONT CONFIG (Public read for theme/shipping/banners; Verified Admin-only write)
     match /config/{docId} {
       allow read: if true;
-
-      allow create: if isAdmin() &&
-                       docId == 'storefront' &&
-                       isValidAdminStoreConfig(request.resource.data);
-
-      allow update: if isAdmin() &&
-                       docId == 'storefront' &&
-                       isValidAdminStoreConfig(request.resource.data);
-
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    // 4. COUPONS (Public read so checkout can validate promo codes; Admin-only write)
+    // 4. COUPONS (Public read so checkout can validate promo codes; Verified Admin-only write)
     match /coupons/{couponId} {
       allow read: if true;
-
-      allow create: if isAdmin() && isValidAdminCoupon(request.resource.data, couponId);
-
-      allow update: if isAdmin() &&
-                       isValidAdminCoupon(request.resource.data, couponId) &&
-                       isImmutableIfPresent('id');
-
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
     // 5. ORDERS (Contains sensitive PII: customerName, customerEmail, customerPhone, shippingAddress)
@@ -730,7 +480,7 @@ service cloud.firestore {
       // Guests and signed-in customers may place orders with strict schema, math, and state bounds.
       // Clients cannot forge admin fulfillment fields ('shipped'/'delivered', non-empty trackingNumber)
       // or attribute an order to another user's UID.
-      allow create: if (isAdmin() && isValidAdminOrder(request.resource.data, orderId)) || (
+      allow create: if isAdmin() || (
                          isValidOrder(request.resource.data, orderId) &&
                          request.resource.data.status in ['processing', 'confirmed'] &&
                          request.resource.data.paymentStatus in ['paid', 'pending_cod'] &&
@@ -741,45 +491,20 @@ service cloud.firestore {
                          )
                        );
 
-      // Fulfillment updates (status transitions, courier trackingNumber) are strictly Admin-only.
-      allow update: if isAdmin() &&
-                       isValidAdminOrder(request.resource.data, orderId) &&
-                       isImmutableIfPresent('id') &&
-                       isImmutableIfPresent('orderNumber') &&
-                       isImmutableIfPresent('userId') &&
-                       isImmutableIfPresent('createdAt');
-
-      allow delete: if isAdmin();
+      // Fulfillment updates (status transitions, courier trackingNumber) and deletes are strictly Admin-only.
+      allow update, delete: if isAdmin();
     }
 
-    // 6. INQUIRIES (Public submission with strict validation & size limits; Admin-only read/manage)
+    // 6. INQUIRIES (Public submission with strict validation & size limits; Verified Admin-only read/manage)
     match /inquiries/{inquiryId} {
-      allow create: if (isAdmin() && isValidAdminInquiry(request.resource.data, inquiryId)) ||
-                       isValidInquiry(request.resource.data, inquiryId);
-
-      allow read: if isAdmin();
-
-      allow update: if isAdmin() &&
-                       isValidAdminInquiry(request.resource.data, inquiryId) &&
-                       isImmutableIfPresent('id') &&
-                       isImmutableIfPresent('createdAt');
-
-      allow delete: if isAdmin();
+      allow create: if isAdmin() || isValidInquiry(request.resource.data, inquiryId);
+      allow read, update, delete: if isAdmin();
     }
 
-    // 7. NEWSLETTER (Public subscription with email/ID binding & size limits; Admin-only read/manage)
+    // 7. NEWSLETTER (Public subscription with email/ID binding & size limits; Verified Admin-only read/manage)
     match /newsletter/{subId} {
-      allow create: if (isAdmin() && isValidAdminNewsletterSub(request.resource.data, subId)) ||
-                       isValidNewsletterSub(request.resource.data, subId);
-
-      allow read: if isAdmin();
-
-      allow update: if isAdmin() &&
-                       isValidAdminNewsletterSub(request.resource.data, subId) &&
-                       isImmutableIfPresent('email') &&
-                       isImmutableIfPresent('createdAt');
-
-      allow delete: if isAdmin();
+      allow create: if isAdmin() || isValidNewsletterSub(request.resource.data, subId);
+      allow read, update, delete: if isAdmin();
     }
 
     // ===============================================================

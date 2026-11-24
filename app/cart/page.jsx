@@ -111,12 +111,12 @@ export default function CartPage() {
               <div className="space-y-2">
                 <h2 className="font-display font-bold text-2xl uppercase">Your Bag Is Empty</h2>
                 <p className="text-sm text-ash max-w-sm mx-auto">
-                  Drop 04 heavyweight oversized tees, archival full-sleeves, and boxy muscle tanks are live in limited batches.
+                  Our heavyweight oversized tees, archival full-sleeves, and boxy muscle tanks are live in limited batches.
                 </p>
               </div>
               <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
                 <Link href="/shop" className="btn-acid">
-                  Explore Drop 04 <ArrowRight className="w-4 h-4" />
+                  Explore Collection <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link href="/track-order" className="btn-outline">
                   Track Existing Order
@@ -128,7 +128,7 @@ export default function CartPage() {
               <section className="mt-16">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-display font-bold text-xl uppercase tracking-wide">
-                    Trending From Drop 04
+                    Trending From The Archive
                   </h3>
                   <Link
                     href="/shop"
@@ -161,7 +161,7 @@ export default function CartPage() {
                     {amountToFreeShipping === 0 ? (
                       <span className="font-medium text-bone">
                         Unlocked{' '}
-                        <strong className="text-emerald-800">FREE Pan-India Shipping</strong> on your Drop 04 order!
+                        <strong className="text-emerald-800">FREE Pan-India Shipping</strong> on your Doffor order!
                       </span>
                     ) : (
                       <span className="text-ash">

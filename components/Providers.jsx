@@ -12,6 +12,7 @@ import SearchModal from './SearchModal';
 import ToastContainer from './ToastContainer';
 import BrandPreloader from './BrandPreloader';
 import RouteProgressBar from './RouteProgressBar';
+import ArchiveVaultGame from './ArchiveVaultGame';
 
 function PageShell({ children }) {
   const pathname = usePathname();
@@ -52,6 +53,7 @@ export default function Providers({ children }) {
           <Footer />
           <CartDrawer />
           <SearchModal />
+          <ArchiveVaultGame mode="floating" />
           <ToastContainer />
         </CartProvider>
       </AuthProvider>

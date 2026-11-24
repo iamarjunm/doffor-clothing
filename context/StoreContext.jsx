@@ -30,6 +30,10 @@ function mergeConfig(raw) {
       Array.isArray(raw.lookbookStrip) && raw.lookbookStrip.length
         ? raw.lookbookStrip
         : INITIAL_CONFIG.lookbookStrip,
+    categories:
+      Array.isArray(raw.categories) && raw.categories.length
+        ? raw.categories
+        : INITIAL_CONFIG.categories,
   };
 }
 

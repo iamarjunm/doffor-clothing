@@ -7,57 +7,53 @@ import { ArrowLeft, ArrowRight, Layers, Sparkles } from 'lucide-react';
 import { useStore } from '../../../context/StoreContext';
 import ProductCard from '../../../components/ProductCard';
 
-const COLLECTION_META = {
-  'full-sleeves': {
-    title: 'Heavyweight Full-Sleeves',
-    subtitle: '260–280 GSM DROP-SHOULDER LONG SLEEVES',
-    description:
-      'Architectural long-sleeve silhouettes cut in dense 260–280 GSM combed cotton and interlock jersey. Built with structured rib cuffs, wide drop shoulders, and full-back archival screen prints.',
-    banner: '/images/real-angel-fullsleeve-black.jpg',
-    spec: '260–280 GSM • Ribbed Cuffs • Boxy Drop-Shoulder',
-  },
-  'oversized-tees': {
-    title: 'Oversized Graphic Tees',
-    subtitle: '240 GSM BIO-WASHED EVERYDAY ROTATION',
-    description:
-      'Our flagship boxy drop-shoulder half-sleeves with elbow-skimming drape, 2.5cm Lycra-reinforced collar rib, and crack-resist halftone & dual-tone graphics.',
-    banner: '/images/real-bootleg-tee.jpg',
-    spec: '240 GSM • Bio-Washed Combed Cotton • Unisex Fit',
-  },
-  'muscle-tanks': {
-    title: 'Boxy Muscle Tanks',
-    subtitle: '240 GSM SCULPTURAL SLEEVELESS VESTS',
-    description:
-      'Structured heavyweight sleeveless silhouettes engineered with extended shoulder caps and crisp retro serif chest typography across six curated garment-dyed colorways.',
-    banner: '/images/real-muscle-tank.jpg',
-    spec: '240 GSM • Extended Shoulder Cap • 6 Colorways',
-  },
-  'limited-drops': {
-    title: 'Limited Drops & Packs',
-    subtitle: 'SMALL-BATCH ARCHIVE RUNS & CURATED BUNDLES',
-    description:
-      'Strictly numbered pigment-dyed runs and high-value rotation packs. Zero restocks once sold out — complete with Drop 04 archive packaging.',
-    banner: '/images/real-angel-fullsleeve-rack.jpg',
-    spec: 'Numbered Batches • Zero Restocks • Exclusive Savings',
-  },
-};
-
-const COLLECTION_TABS = [
-  { slug: 'full-sleeves', label: 'Full-Sleeves' },
-  { slug: 'oversized-tees', label: 'Oversized Tees' },
-  { slug: 'muscle-tanks', label: 'Muscle Tanks' },
-  { slug: 'limited-drops', label: 'Limited Drops' },
-];
+function formatSlugLabel(slug) {
+  return String(slug || '')
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
 
 export default function CollectionPage() {
   const params = useParams();
   const category = String(params?.category || '').toLowerCase();
-  const { products } = useStore();
+  const { products, config } = useStore();
 
   const [sortBy, setSortBy] = useState('featured');
   const [sizeFilter, setSizeFilter] = useState('');
 
-  const meta = COLLECTION_META[category];
+  const categories = Array.isArray(config.categories) ? config.categories : [];
+  const collectionLabel = config.collectionLabel || 'Core Collection';
+
+  const meta = useMemo(() => {
+    const matched = categories.find((c) => c.id === category);
+    if (matched) {
+      return {
+        title: matched.label || formatSlugLabel(category),
+        subtitle: (matched.subtitle || collectionLabel).toUpperCase(),
+        description:
+          matched.description ||
+          `Curated ${matched.label || formatSlugLabel(category)} silhouettes crafted in heavyweight combed cotton.`,
+        banner: matched.banner || '/images/hero-campaign.jpg',
+        spec: matched.spec || '240–280 GSM • Bio-Washed Heavyweight Cotton • Unisex Fit',
+      };
+    }
+
+    const matchingProducts = products.filter((p) => p.category === category);
+    if (matchingProducts.length > 0) {
+      const fallbackTitle = matchingProducts[0]?.categoryLabel || formatSlugLabel(category);
+      return {
+        title: fallbackTitle,
+        subtitle: collectionLabel.toUpperCase(),
+        description: `Explore all ${fallbackTitle} pieces from ${config.brandName || 'Doffor Clothing'}.`,
+        banner: matchingProducts[0]?.images?.[0] || '/images/hero-campaign.jpg',
+        spec: '240–280 GSM • Bio-Washed Heavyweight Cotton • Unisex Fit',
+      };
+    }
+
+    return null;
+  }, [categories, category, products, collectionLabel, config.brandName]);
 
   const collectionProducts = useMemo(() => {
     const base = products.filter((p) => p.category === category);
@@ -93,11 +89,11 @@ export default function CollectionPage() {
             COLLECTION NOT FOUND
           </p>
           <h1 className="font-display font-extrabold text-3xl uppercase">
-            Archive Shelf Unavailable
+            Collection Unavailable
           </h1>
           <p className="text-sm text-ash">
             The collection <span className="text-bone font-mono">{category}</span> does not exist
-            in Drop 04. Browse our live catalog instead.
+            in {collectionLabel}. Browse our live catalog instead.
           </p>
           <div className="pt-2 flex flex-wrap justify-center gap-3">
             <Link href="/shop" className="btn-acid">
@@ -162,12 +158,12 @@ export default function CollectionPage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
           {/* Switch between collections */}
           <div className="flex flex-wrap items-center gap-2">
-            {COLLECTION_TABS.map((tab) => {
-              const active = tab.slug === category;
+            {categories.map((tab) => {
+              const active = tab.id === category;
               return (
                 <Link
-                  key={tab.slug}
-                  href={`/collections/${tab.slug}`}
+                  key={tab.id}
+                  href={`/collections/${tab.id}`}
                   className={`px-3.5 py-2 rounded-sm font-mono text-xs uppercase tracking-wider border transition-colors ${
                     active
                       ? 'bg-acid text-obsidian border-acid font-bold'
@@ -231,10 +227,14 @@ export default function CollectionPage() {
         {collectionProducts.length === 0 ? (
           <div className="card-dark p-10 text-center space-y-4">
             <p className="font-mono text-xs uppercase tracking-widest text-acid">
-              NO PIECES MATCHING SIZE {sizeFilter}
+              {sizeFilter
+                ? `NO PIECES MATCHING SIZE ${sizeFilter}`
+                : `NO PIECES IN ${meta.title.toUpperCase()} YET`}
             </p>
             <p className="text-sm text-ash">
-              Clear the size filter or check all available Drop 04 pieces.
+              {sizeFilter
+                ? `Clear the size filter or check all available pieces in ${collectionLabel}.`
+                : `New ${meta.title} silhouettes are dropping soon. Explore all available pieces in ${collectionLabel}.`}
             </p>
             <div className="flex justify-center gap-3">
               {sizeFilter && (

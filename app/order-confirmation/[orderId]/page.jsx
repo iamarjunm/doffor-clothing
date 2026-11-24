@@ -101,7 +101,7 @@ export default function OrderConfirmationPage() {
               </div>
               <div>
                 <p className="font-mono text-xs uppercase tracking-widest text-emerald-800 font-bold">
-                  Order Confirmed • Drop 04 Secured
+                  Order Confirmed • Doffor Archive Secured
                 </p>
                 <h1 className="font-display font-extrabold text-2xl sm:text-3xl uppercase mt-1">
                   Thank You, {order.customerName?.split(' ')[0] || 'Collector'}!
@@ -401,7 +401,7 @@ export default function OrderConfirmationPage() {
         {/* Bottom Actions */}
         <div className="flex flex-wrap items-center justify-between gap-4 no-print">
           <Link href="/shop" className="btn-outline">
-            Continue Shopping Drop 04
+            Continue Shopping
           </Link>
           <Link href="/account?tab=orders" className="btn-acid">
             View All My Orders <ArrowRight className="w-4 h-4" />

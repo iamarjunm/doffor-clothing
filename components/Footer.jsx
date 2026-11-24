@@ -79,10 +79,13 @@ export default function Footer() {
           </h4>
           <ul className="space-y-2.5 text-xs text-neutral-300">
             <li><Link href="/shop" className="hover:text-white transition-colors">Shop All</Link></li>
-            <li><Link href="/collections/full-sleeves" className="hover:text-white transition-colors">Full-Sleeves</Link></li>
-            <li><Link href="/collections/oversized-tees" className="hover:text-white transition-colors">Oversized Tees</Link></li>
-            <li><Link href="/collections/muscle-tanks" className="hover:text-white transition-colors">Muscle Tanks</Link></li>
-            <li><Link href="/collections/limited-drops" className="hover:text-white transition-colors">Limited Archive</Link></li>
+            {(config.categories || []).map((cat) => (
+              <li key={cat.id}>
+                <Link href={`/collections/${cat.id}`} className="hover:text-white transition-colors">
+                  {cat.label}
+                </Link>
+              </li>
+            ))}
             <li><Link href="/lookbook" className="hover:text-white transition-colors">Lookbook</Link></li>
           </ul>
         </div>

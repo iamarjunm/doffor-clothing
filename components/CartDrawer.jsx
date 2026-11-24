@@ -84,7 +84,7 @@ export default function CartDrawer() {
               <ShoppingBag className="w-8 h-8 stroke-[1.2] text-neutral-400" />
               <div className="space-y-1">
                 <p className="text-sm font-medium text-[#0B0B0C]">Your bag is empty</p>
-                <p className="text-xs text-neutral-500">Explore Drop 04 heavyweight essentials.</p>
+                <p className="text-xs text-neutral-500">Heavyweight tees &amp; full-sleeves engineered for daily rotation.</p>
               </div>
               <button
                 onClick={() => {
@@ -93,7 +93,7 @@ export default function CartDrawer() {
                 }}
                 className="btn-acid"
               >
-                Shop Collection
+                Explore Collection
               </button>
             </div>
           ) : (

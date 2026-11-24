@@ -16,10 +16,23 @@ import {
   ExternalLink,
   Truck,
   Globe,
+  Layers,
+  Plus,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 import { INITIAL_CONFIG } from '../lib/catalog';
 import { updateStoreConfig, uploadProductImage } from '../lib/dataService';
 import SanityMediaPicker from './SanityMediaPicker';
+
+function slugifyCategoryId(val) {
+  return String(val || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
 
 const THEME_PRESETS = [
   {
@@ -78,6 +91,7 @@ const THEME_PRESETS = [
 
 const SUB_TABS = [
   { id: 'theme', label: 'Theme & Brand', icon: Palette },
+  { id: 'categories', label: 'Categories', icon: Layers },
   { id: 'hero', label: 'Hero Campaign', icon: ImageIcon },
   { id: 'sections', label: 'Homepage Sections', icon: Layout },
   { id: 'banners', label: 'Banners & Lookbook', icon: Sliders },
@@ -90,6 +104,17 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
   const [saving, setSaving] = useState(false);
   const [uploadingKey, setUploadingKey] = useState('');
   const [mediaPickerCallback, setMediaPickerCallback] = useState(null);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCatIdManual, setNewCatIdManual] = useState(false);
+  const [newCategory, setNewCategory] = useState({
+    id: '',
+    label: '',
+    subtitle: '',
+    spec: '',
+    description: '',
+    banner: '',
+    showInNav: true,
+  });
 
   const openMediaPicker = (onPick) => {
     setMediaPickerCallback(() => onPick);
@@ -100,6 +125,10 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
       setDraft({
         ...INITIAL_CONFIG,
         ...config,
+        categories:
+          Array.isArray(config.categories) && config.categories.length
+            ? config.categories
+            : INITIAL_CONFIG.categories,
         theme: { ...INITIAL_CONFIG.theme, ...(config.theme || {}) },
         sections: { ...INITIAL_CONFIG.sections, ...(config.sections || {}) },
         hero: { ...INITIAL_CONFIG.hero, ...(config.hero || {}) },
@@ -139,6 +168,74 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
     }));
   };
 
+  const handleAddCategory = (e) => {
+    e.preventDefault();
+    const trimmedLabel = newCategory.label.trim();
+    if (!trimmedLabel) {
+      pushToast('Category label is required.', 'error');
+      return;
+    }
+    const slug = slugifyCategoryId(newCategory.id || trimmedLabel);
+    if (!slug) {
+      pushToast('Please provide a valid URL slug / ID.', 'error');
+      return;
+    }
+    const existing = draft.categories || [];
+    if (existing.some((c) => c.id === slug)) {
+      pushToast(`A category with slug "${slug}" already exists.`, 'error');
+      return;
+    }
+    const created = {
+      id: slug,
+      label: trimmedLabel,
+      subtitle: newCategory.subtitle.trim() || 'Heavyweight Collection',
+      spec: newCategory.spec.trim() || '240–280 GSM • Combed Cotton',
+      description: newCategory.description.trim(),
+      banner: newCategory.banner.trim() || '/images/real-bootleg-tee.jpg',
+      showInNav: newCategory.showInNav !== false,
+    };
+    setDraft((prev) => ({
+      ...prev,
+      categories: [...(prev.categories || []), created],
+    }));
+    setNewCategory({
+      id: '',
+      label: '',
+      subtitle: '',
+      spec: '',
+      description: '',
+      banner: '',
+      showInNav: true,
+    });
+    setNewCatIdManual(false);
+    setShowAddCategory(false);
+    pushToast(`Added "${created.label}" — click Publish Live to save.`, 'info');
+  };
+
+  const handleMoveCategory = (index, direction) => {
+    setDraft((prev) => {
+      const list = [...(prev.categories || [])];
+      const target = index + direction;
+      if (target < 0 || target >= list.length) return prev;
+      [list[index], list[target]] = [list[target], list[index]];
+      return { ...prev, categories: list };
+    });
+  };
+
+  const handleDeleteCategory = (index) => {
+    const list = draft.categories || [];
+    if (list.length <= 1) {
+      pushToast('At least one category must remain.', 'error');
+      return;
+    }
+    const removed = list[index];
+    setDraft((prev) => ({
+      ...prev,
+      categories: (prev.categories || []).filter((_, idx) => idx !== index),
+    }));
+    pushToast(`Removed "${removed?.label || 'category'}" — click Publish Live to save.`, 'info');
+  };
+
   const handleImageUpload = async (file, onUrl, uploadId) => {
     if (!file) return;
     setUploadingKey(uploadId);
@@ -154,9 +251,35 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
   };
 
   const handlePublish = async () => {
+    const cleanedCategories = (draft.categories || []).map((cat, idx) => ({
+      ...cat,
+      id: slugifyCategoryId(cat.id || cat.label) || `category-${idx + 1}`,
+      label: String(cat.label || '').trim() || `Category ${idx + 1}`,
+      subtitle: String(cat.subtitle || '').trim(),
+      spec: String(cat.spec || '').trim(),
+      description: String(cat.description || '').trim(),
+      banner: String(cat.banner || '').trim() || '/images/real-bootleg-tee.jpg',
+      showInNav: cat.showInNav !== false,
+    }));
+
+    const seenIds = new Set();
+    for (const cat of cleanedCategories) {
+      if (seenIds.has(cat.id)) {
+        pushToast(`Duplicate category slug "${cat.id}". Each category needs a unique ID.`, 'error');
+        return;
+      }
+      seenIds.add(cat.id);
+    }
+
+    const nextDraft = {
+      ...draft,
+      categories: cleanedCategories.length ? cleanedCategories : INITIAL_CONFIG.categories,
+    };
+
     setSaving(true);
     try {
-      await updateStoreConfig(draft);
+      await updateStoreConfig(nextDraft);
+      setDraft(nextDraft);
       await refreshStore();
       pushToast('Storefront customization published live!');
     } catch (err) {
@@ -313,6 +436,21 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                 </div>
 
                 <div>
+                  <label className="block text-[10px] uppercase tracking-[0.18em] text-ash mb-1.5">
+                    Collection Label
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Core Collection / Autumn / Winter"
+                    value={draft.collectionLabel || ''}
+                    onChange={(e) =>
+                      setDraft((p) => ({ ...p, collectionLabel: e.target.value }))
+                    }
+                    className="input-dark"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
                   <label className="block text-[10px] uppercase tracking-[0.18em] text-ash mb-1.5">
                     Button Corner Style
                   </label>
@@ -478,7 +616,7 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                         borderRadius: draft.theme?.buttonRadius,
                       }}
                     >
-                      {draft.hero?.primaryCtaLabel || 'Shop Drop'}
+                      {draft.hero?.primaryCtaLabel || 'Shop Collection'}
                     </span>
                     <span
                       className="px-4 py-2 text-[10px] uppercase tracking-[0.18em] border border-current opacity-80"
@@ -490,6 +628,451 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================
+          SUB-TAB 1B: DYNAMIC CATEGORIES MANAGER
+         ====================================================== */}
+      {subTab === 'categories' && (
+        <div className="space-y-6">
+          {/* Categories Header + Add Button */}
+          <div className="card-dark p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-[0.18em]">
+                Storefront Categories ({(draft.categories || []).length})
+              </h3>
+              <p className="text-xs text-ash mt-1">
+                Add, edit, reorder, or hide product categories. Published changes sync immediately to the navbar, shop filters, collection pages, and product editor.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddCategory((prev) => !prev)}
+              className="btn-acid py-2.5 px-5 shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {showAddCategory ? 'Close Form' : 'Add Category'}
+            </button>
+          </div>
+
+          {/* Add New Category Form */}
+          {showAddCategory && (
+            <form
+              onSubmit={handleAddCategory}
+              className="card-dark p-6 space-y-4 border-2 border-[#0B0B0C]"
+            >
+              <div className="flex items-center justify-between border-b border-black/10 pb-3">
+                <h4 className="text-xs font-semibold uppercase tracking-[0.18em]">
+                  Create New Category
+                </h4>
+                <label className="inline-flex items-center gap-2 text-xs cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newCategory.showInNav !== false}
+                    onChange={(e) =>
+                      setNewCategory((prev) => ({
+                        ...prev,
+                        showInNav: e.target.checked,
+                      }))
+                    }
+                    className="accent-[#0B0B0C] w-4 h-4"
+                  />
+                  Show in Navbar
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.18em] text-ash mb-1.5">
+                    Category Label *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Heavyweight Hoodies"
+                    value={newCategory.label}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setNewCategory((prev) => ({
+                        ...prev,
+                        label: val,
+                        id: newCatIdManual ? prev.id : slugifyCategoryId(val),
+                      }));
+                    }}
+                    className="input-dark"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.18em] text-ash mb-1.5">
+                    URL Slug / ID *{' '}
+                    <span className="font-mono normal-case text-neutral-400">
+                      (/collections/{newCategory.id || 'slug'})
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. heavyweight-hoodies"
+                    value={newCategory.id}
+                    onChange={(e) => {
+                      setNewCatIdManual(true);
+                      setNewCategory((prev) => ({
+                        ...prev,
+                        id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''),
+                      }));
+                    }}
+                    className="input-dark font-mono text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.18em] text-ash mb-1.5">
+                    Subtitle
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 400 GSM Heavyweight French Terry"
+                    value={newCategory.subtitle}
+                    onChange={(e) =>
+                      setNewCategory((prev) => ({ ...prev, subtitle: e.target.value }))
+                    }
+                    className="input-dark"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase tracking-[0.18em] text-ash mb-1.5">
+                    Fabric / Spec Line
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 400 GSM • Boxy Drop-Shoulder • Garment Dyed"
+                    value={newCategory.spec}
+                    onChange={(e) =>
+                      setNewCategory((prev) => ({ ...prev, spec: e.target.value }))
+                    }
+                    className="input-dark"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-[0.18em] text-ash mb-1.5">
+                  Collection Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Editorial description displayed on the collection page..."
+                  value={newCategory.description}
+                  onChange={(e) =>
+                    setNewCategory((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  className="input-dark"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] uppercase tracking-[0.18em] text-ash">
+                  Banner Image (URL, Sanity Upload, or Library)
+                </label>
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                  {newCategory.banner && (
+                    <img
+                      src={newCategory.banner}
+                      alt="New category banner preview"
+                      className="w-11 h-11 object-cover bg-neutral-100 border border-black/10 shrink-0"
+                    />
+                  )}
+                  <input
+                    type="text"
+                    placeholder="https://cdn.sanity.io/... or /images/..."
+                    value={newCategory.banner}
+                    onChange={(e) =>
+                      setNewCategory((prev) => ({ ...prev, banner: e.target.value }))
+                    }
+                    className="input-dark text-xs flex-1"
+                  />
+                  <label className="btn-outline py-2 px-3.5 cursor-pointer shrink-0">
+                    {uploadingKey === 'new-cat-banner' ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5" />
+                    )}
+                    Upload
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) =>
+                        handleImageUpload(
+                          e.target.files?.[0],
+                          (url) => setNewCategory((prev) => ({ ...prev, banner: url })),
+                          'new-cat-banner'
+                        )
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      openMediaPicker((url) => {
+                        setNewCategory((prev) => ({ ...prev, banner: url }));
+                        pushToast('Category banner selected from Sanity CDN.');
+                      })
+                    }
+                    className="btn-outline py-2 px-3.5 shrink-0"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    Sanity Library
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-black/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddCategory(false);
+                    setNewCatIdManual(false);
+                  }}
+                  className="btn-outline py-2 px-4"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn-acid py-2 px-5">
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Category
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Existing Categories List */}
+          <div className="space-y-4">
+            {(draft.categories || []).map((cat, idx) => {
+              const total = (draft.categories || []).length;
+              return (
+                <div
+                  key={idx}
+                  className="card-dark p-5 space-y-4"
+                >
+                  {/* Category Card Header */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-black/10">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <img
+                        src={cat.banner || '/images/real-bootleg-tee.jpg'}
+                        alt={cat.label || 'Category'}
+                        className="w-12 h-14 object-cover bg-neutral-100 border border-black/10 shrink-0"
+                      />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="px-2 py-0.5 bg-[#0B0B0C] text-white font-mono text-[10px]">
+                            #{idx + 1}
+                          </span>
+                          <p className="font-display font-semibold text-base text-bone truncate">
+                            {cat.label || 'Untitled Category'}
+                          </p>
+                        </div>
+                        <p className="font-mono text-[11px] text-ash mt-0.5 truncate">
+                          /collections/{cat.id || 'slug'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-black/15 text-xs cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={cat.showInNav !== false}
+                          onChange={(e) =>
+                            updateArrayItem('categories', idx, 'showInNav', e.target.checked)
+                          }
+                          className="accent-[#0B0B0C]"
+                        />
+                        Show in Navbar
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategory(idx, -1)}
+                        disabled={idx === 0}
+                        title="Move Up"
+                        className="btn-outline py-1.5 px-2.5 disabled:opacity-35"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMoveCategory(idx, 1)}
+                        disabled={idx === total - 1}
+                        title="Move Down"
+                        className="btn-outline py-1.5 px-2.5 disabled:opacity-35"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCategory(idx)}
+                        disabled={total <= 1}
+                        title={
+                          total <= 1
+                            ? 'At least one category must remain'
+                            : 'Delete Category'
+                        }
+                        className="btn-outline py-1.5 px-2.5 text-red-700 hover:border-red-700 disabled:opacity-35"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Category Fields Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-[0.16em] text-ash mb-1">
+                        Category Label
+                      </label>
+                      <input
+                        type="text"
+                        value={cat.label || ''}
+                        onChange={(e) =>
+                          updateArrayItem('categories', idx, 'label', e.target.value)
+                        }
+                        placeholder="e.g. Full-Sleeves"
+                        className="input-dark text-xs py-2 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-[0.16em] text-ash mb-1">
+                        URL Slug / ID
+                      </label>
+                      <input
+                        type="text"
+                        value={cat.id || ''}
+                        onChange={(e) =>
+                          updateArrayItem(
+                            'categories',
+                            idx,
+                            'id',
+                            e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+                          )
+                        }
+                        placeholder="e.g. full-sleeves"
+                        className="input-dark text-xs py-2 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-[0.16em] text-ash mb-1">
+                        Subtitle
+                      </label>
+                      <input
+                        type="text"
+                        value={cat.subtitle || ''}
+                        onChange={(e) =>
+                          updateArrayItem('categories', idx, 'subtitle', e.target.value)
+                        }
+                        placeholder="e.g. 260–280 GSM Heavyweight Long Sleeves"
+                        className="input-dark text-xs py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] uppercase tracking-[0.16em] text-ash mb-1">
+                        Fabric / Spec Line
+                      </label>
+                      <input
+                        type="text"
+                        value={cat.spec || ''}
+                        onChange={(e) =>
+                          updateArrayItem('categories', idx, 'spec', e.target.value)
+                        }
+                        placeholder="e.g. 260–280 GSM • Ribbed Cuffs • Boxy Drop-Shoulder"
+                        className="input-dark text-xs py-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-[0.16em] text-ash mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={cat.description || ''}
+                      onChange={(e) =>
+                        updateArrayItem('categories', idx, 'description', e.target.value)
+                      }
+                      placeholder="Collection page editorial description..."
+                      className="input-dark text-xs py-2"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] uppercase tracking-[0.16em] text-ash mb-1">
+                      Banner Image
+                    </label>
+                    <div className="flex flex-wrap sm:flex-nowrap gap-2">
+                      <input
+                        type="text"
+                        value={cat.banner || ''}
+                        onChange={(e) =>
+                          updateArrayItem('categories', idx, 'banner', e.target.value)
+                        }
+                        placeholder="Image URL"
+                        className="input-dark text-xs py-1.5 flex-1"
+                      />
+                      <label className="btn-outline py-1.5 px-3 cursor-pointer shrink-0">
+                        {uploadingKey === `cat-banner-${idx}` ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Upload className="w-3.5 h-3.5" />
+                        )}
+                        Upload
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            handleImageUpload(
+                              e.target.files?.[0],
+                              (url) => updateArrayItem('categories', idx, 'banner', url),
+                              `cat-banner-${idx}`
+                            )
+                          }
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openMediaPicker((url) => {
+                            updateArrayItem('categories', idx, 'banner', url);
+                            pushToast('Category banner selected from Sanity CDN.');
+                          })
+                        }
+                        className="btn-outline py-1.5 px-3 shrink-0"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" />
+                        Sanity Library
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={handlePublish}
+              disabled={saving}
+              className="btn-acid py-2.5 px-6"
+            >
+              <Check className="w-4 h-4" />
+              {saving ? 'Publishing...' : 'Save & Publish Categories'}
+            </button>
           </div>
         </div>
       )}
@@ -712,6 +1295,7 @@ export default function AdminSiteCustomizer({ config, refreshStore, pushToast })
                 { key: 'showSilhouettes', label: 'Shop By Silhouette Directory' },
                 { key: 'showCraftStory', label: 'Fabric & Construction Story' },
                 { key: 'showLookbookStrip', label: 'The Lookbook 4-Column Strip' },
+                { key: 'showVaultGame', label: 'The Doffor Vault (Promotional Game)' },
                 { key: 'showPrivilegeBar', label: 'Promo / Privilege Callout Bar' },
               ].map((sec) => {
                 const enabled = draft.sections?.[sec.key] !== false;

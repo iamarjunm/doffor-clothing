@@ -1,27 +1,22 @@
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Check } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
 import ProductCard from '../components/ProductCard';
 import Reveal from '../components/Reveal';
+import HeroShowcase from '../components/HeroShowcase';
+import ArchiveVaultGame from '../components/ArchiveVaultGame';
 import { ProductGridSkeleton } from '../components/DofforLoader';
 
-const CATEGORY_TABS = [
-  { id: 'all', label: 'All' },
-  { id: 'full-sleeves', label: 'Full-Sleeves' },
-  { id: 'oversized-tees', label: 'Oversized Tees' },
-  { id: 'muscle-tanks', label: 'Muscle Tanks' },
-  { id: 'limited-drops', label: 'Limited Archive' },
-];
-
 const TICKER_ITEMS = [
+  '4.9★ RATED BY 2,400+ WEARERS',
   '240–280 GSM HEAVYWEIGHT COTTON',
   'BOXY DROP-SHOULDER ARCHITECTURE',
-  'HIGH-DENSITY ARCHIVAL PRINTS',
-  'PAN-INDIA EXPRESS',
-  'RAZORPAY INSTANT UPI',
+  '48HR PAN-INDIA EXPRESS DISPATCH',
+  '7-DAY FREE SIZE EXCHANGE',
+  'RAZORPAY INSTANT UPI & COD',
 ];
 
 export default function HomePage() {
@@ -29,50 +24,6 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState('all');
   const [copiedCode, setCopiedCode] = useState('');
 
-  const heroSectionRef = useRef(null);
-  const heroParallaxRef = useRef(null);
-  const heroCopyRef = useRef(null);
-  const heroScrollCueRef = useRef(null);
-
-  useEffect(() => {
-    let rafId = null;
-
-    const updateParallax = () => {
-      rafId = null;
-      const scrollY = window.scrollY || 0;
-      const heroHeight = heroSectionRef.current?.offsetHeight || 800;
-
-      if (scrollY <= heroHeight * 1.25) {
-        if (heroParallaxRef.current) {
-          const offset = (scrollY * 0.14).toFixed(2);
-          heroParallaxRef.current.style.transform = `translate3d(0, ${offset}px, 0)`;
-        }
-        if (heroCopyRef.current) {
-          const progress = Math.min(1, Math.max(0, scrollY / (heroHeight * 0.65)));
-          heroCopyRef.current.style.opacity = String((1 - progress * 0.85).toFixed(3));
-          heroCopyRef.current.style.transform = `translate3d(0, ${(-progress * 18).toFixed(2)}px, 0)`;
-        }
-        if (heroScrollCueRef.current) {
-          const cueOpacity = Math.max(0, 1 - scrollY / 180);
-          heroScrollCueRef.current.style.opacity = String(cueOpacity.toFixed(3));
-        }
-      }
-    };
-
-    const onScroll = () => {
-      if (rafId === null) {
-        rafId = window.requestAnimationFrame(updateParallax);
-      }
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      if (rafId !== null) window.cancelAnimationFrame(rafId);
-    };
-  }, []);
-
-  const hero = config.hero || {};
   const sections = config.sections || {};
   const newArrivals = config.newArrivals || {};
   const editorialSplit = config.editorialSplit || [];
@@ -80,6 +31,14 @@ export default function HomePage() {
   const craftStory = config.craftStory || {};
   const lookbookStrip = config.lookbookStrip || [];
   const privilegeBar = config.privilegeBar || {};
+
+  const categoryTabs = useMemo(
+    () => [
+      { id: 'all', label: 'All' },
+      ...(config.categories || []).map((c) => ({ id: c.id, label: c.label })),
+    ],
+    [config.categories]
+  );
 
   const filteredProducts = useMemo(() => {
     const list =
@@ -96,115 +55,10 @@ export default function HomePage() {
     setTimeout(() => setCopiedCode(''), 2500);
   };
 
-  const overlayAlpha = Math.min(85, Math.max(0, Number(hero.overlayOpacity ?? 65))) / 100;
-
   return (
     <div>
-      {/* 1. FULL-BLEED EDITORIAL CAMPAIGN HERO WITH GPU SCROLL PARALLAX */}
-      <section
-        ref={heroSectionRef}
-        className="relative w-full h-[88vh] min-h-[580px] max-h-[920px] bg-[#111113] overflow-hidden"
-      >
-        <div
-          ref={heroParallaxRef}
-          className="absolute -inset-y-12 inset-x-0 will-change-transform"
-        >
-          <img
-            src={hero.image || '/images/hero-campaign.jpg'}
-            alt="Doffor Editorial Campaign"
-            className="w-full h-full object-cover object-center animate-hero-zoom"
-          />
-        </div>
-
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `linear-gradient(to top, rgba(0,0,0,${overlayAlpha}) 0%, rgba(0,0,0,${(
-              overlayAlpha * 0.25
-            ).toFixed(2)}) 55%, rgba(0,0,0,0.16) 100%)`,
-          }}
-        />
-
-        {/* Subtle Top-Right Archive Index Tag */}
-        <div className="absolute top-6 sm:top-8 right-6 sm:right-10 z-10 flex items-center gap-3 text-white/70 animate-fade-in-slow pointer-events-none">
-          <span className="w-6 h-px bg-white/40" />
-          <span className="text-[10px] uppercase tracking-[0.28em] font-medium">
-            01 / ARCHIVE
-          </span>
-        </div>
-
-        <div className="absolute inset-0 max-w-[1440px] mx-auto px-6 sm:px-10 pb-12 sm:pb-16 flex flex-col justify-end">
-          <div className="flex items-end justify-between gap-8">
-            <div
-              ref={heroCopyRef}
-              className="max-w-2xl space-y-5 text-white will-change-[opacity,transform]"
-            >
-              <div className="overflow-hidden">
-                <p
-                  className="text-[11px] uppercase tracking-[0.28em] text-white/80 font-medium animate-letter-rise"
-                  style={{ animationDelay: '120ms' }}
-                >
-                  {hero.eyebrow || 'Drop 04 — Autumn / Winter Archive'}
-                </p>
-              </div>
-
-              <h1 className="font-display font-bold text-4xl sm:text-6xl lg:text-[68px] leading-[0.98] tracking-[-0.02em] uppercase">
-                <span className="block overflow-hidden">
-                  <span className="block animate-letter-rise" style={{ animationDelay: '220ms' }}>
-                    {hero.headlineLine1 || 'Heavyweight Forms.'}
-                  </span>
-                </span>
-                <span className="block overflow-hidden">
-                  <span className="block animate-letter-rise" style={{ animationDelay: '340ms' }}>
-                    {hero.headlineLine2 || 'Built To Outlast.'}
-                  </span>
-                </span>
-              </h1>
-
-              <p
-                className="text-sm sm:text-base text-white/80 max-w-lg leading-relaxed font-light animate-fade-in-slow"
-                style={{ animationDelay: '460ms' }}
-              >
-                {hero.description}
-              </p>
-
-              <div
-                className="flex flex-wrap items-center gap-4 pt-2 animate-fade-in-slow"
-                style={{ animationDelay: '580ms' }}
-              >
-                <Link
-                  href={hero.primaryCtaHref || '/shop'}
-                  className="inline-flex items-center gap-2.5 bg-white text-[#0B0B0C] px-8 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] hover:bg-neutral-200 transition-all duration-300 hover:gap-3.5"
-                  style={{ borderRadius: 'var(--df-radius)' }}
-                >
-                  {hero.primaryCtaLabel || 'Shop Drop 04'} <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-                <Link
-                  href={hero.secondaryCtaHref || '/lookbook'}
-                  className="inline-flex items-center gap-2 border border-white/50 text-white px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] hover:bg-white hover:text-[#0B0B0C] transition-colors"
-                  style={{ borderRadius: 'var(--df-radius)' }}
-                >
-                  {hero.secondaryCtaLabel || 'View Lookbook'}
-                </Link>
-              </div>
-            </div>
-
-            {/* Editorial Scroll Indicator at Bottom-Right */}
-            <div
-              ref={heroScrollCueRef}
-              className="hidden sm:flex flex-col items-center gap-3 pb-1 text-white/75 animate-fade-in-slow shrink-0 select-none pointer-events-none"
-              style={{ animationDelay: '700ms' }}
-            >
-              <span className="text-[9px] uppercase tracking-[0.3em] [writing-mode:vertical-rl]">
-                SCROLL
-              </span>
-              <span className="relative w-px h-12 bg-white/20 overflow-hidden">
-                <span className="absolute inset-0 bg-white animate-scroll-cue" />
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 1. MULTI-SLIDE EDITORIAL RUNWAY HERO SHOWCASE */}
+      <HeroShowcase />
 
       {/* 1B. WHISPER-QUIET MONOCHROME EDITORIAL TICKER STRIP */}
       <div
@@ -242,7 +96,7 @@ export default function HomePage() {
             <div>
               <Reveal variant="up" y={12}>
                 <p className="text-[10px] uppercase tracking-[0.24em] opacity-60 mb-2">
-                  {newArrivals.eyebrow || 'Collection 04'}
+                  {newArrivals.eyebrow || config.collectionLabel || 'New Collection'}
                 </p>
               </Reveal>
               <Reveal variant="mask" delay={80}>
@@ -254,7 +108,7 @@ export default function HomePage() {
 
             <Reveal variant="up" delay={120} y={12}>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                {CATEGORY_TABS.map((tab) => (
+                {categoryTabs.map((tab) => (
                   <button
                     key={tab.id}
                     type="button"
@@ -476,7 +330,7 @@ export default function HomePage() {
             <div>
               <Reveal variant="up" y={12}>
                 <p className="text-[10px] uppercase tracking-[0.24em] opacity-60 mb-2">
-                  Editorial 04
+                  Editorial
                 </p>
               </Reveal>
               <Reveal variant="mask" delay={80}>
@@ -517,9 +371,12 @@ export default function HomePage() {
         </section>
       )}
 
+      {/* 6B. THE DOFFOR VAULT — INTERACTIVE MONOCHROME PROMOTIONAL REWARD GAME */}
+      {sections.showVaultGame !== false && <ArchiveVaultGame mode="inline" />}
+
       {/* 7. PRIVILEGE PROMO BAR */}
       {sections.showPrivilegeBar !== false && (
-        <Reveal variant="up" className="max-w-[1440px] mx-auto px-6 sm:px-10">
+        <Reveal variant="up" className="max-w-[1440px] mx-auto px-6 sm:px-10 pt-16 sm:pt-20">
           <div className="card-dark px-6 sm:px-12 py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="space-y-2 max-w-xl">
               <p className="text-[10px] uppercase tracking-[0.24em] opacity-60">
@@ -527,7 +384,7 @@ export default function HomePage() {
               </p>
               <Reveal variant="mask" delay={80}>
                 <h3 className="font-display font-semibold text-2xl">
-                  {privilegeBar.heading || '10% Off Your Drop 04 Order'}
+                  {privilegeBar.heading || '10% Off Your First Order'}
                 </h3>
               </Reveal>
               <p className="text-sm opacity-75">{privilegeBar.description}</p>
