@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, X, ArrowUpRight } from 'lucide-react';
 import { useStore } from '../context/StoreContext';
@@ -26,14 +26,28 @@ export default function SearchModal() {
     );
   }, [query, products]);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => {
+      if (e.key === 'Escape') setSearchOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [searchOpen, setSearchOpen]);
+
   if (!searchOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-start justify-center pt-16 sm:pt-24 px-4 no-print">
+    <div className="fixed inset-0 z-[80] flex items-start justify-center pt-10 sm:pt-24 px-3 sm:px-4 no-print">
       <div className="fixed inset-0 bg-black/45 backdrop-blur-[2px]" onClick={() => setSearchOpen(false)} />
 
       <div className="relative z-10 w-full max-w-2xl bg-white border border-black/15 shadow-2xl overflow-hidden animate-fade-up">
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-black/10">
+        <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-black/10">
           <Search className="w-4 h-4 text-neutral-500 shrink-0" />
           <input
             type="text"
@@ -43,25 +57,31 @@ export default function SearchModal() {
             placeholder="Search pieces, colors, or fabric weights..."
             className="w-full bg-transparent text-[#0B0B0C] text-sm placeholder:text-neutral-400 focus:outline-none"
           />
-          <button onClick={() => setSearchOpen(false)} className="p-1 text-neutral-500 hover:text-black">
+          <button
+            type="button"
+            onClick={() => setSearchOpen(false)}
+            aria-label="Close search"
+            className="w-8 h-8 flex items-center justify-center text-neutral-500 hover:text-black shrink-0"
+          >
             <X className="w-5 h-5 stroke-[1.5]" />
           </button>
         </div>
 
-        <div className="px-5 py-3 border-b border-black/5 bg-[#F6F5F2] flex flex-wrap items-center gap-2">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-neutral-500 mr-1">Popular:</span>
+        <div className="px-4 sm:px-5 py-3 border-b border-black/5 bg-[#F6F5F2] flex items-center gap-2 overflow-x-auto no-scrollbar sm:flex-wrap">
+          <span className="text-[10px] uppercase tracking-[0.18em] text-neutral-500 mr-1 shrink-0">Popular:</span>
           {QUICK_TAGS.map((tag) => (
             <button
               key={tag}
+              type="button"
               onClick={() => setQuery(tag)}
-              className="px-2.5 py-1 bg-white border border-black/10 text-[11px] text-neutral-700 hover:border-black hover:text-black transition-colors"
+              className="px-2.5 py-1 bg-white border border-black/10 text-[11px] text-neutral-700 hover:border-black hover:text-black transition-colors whitespace-nowrap shrink-0"
             >
               {tag}
             </button>
           ))}
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto divide-y divide-black/5">
+        <div className="max-h-[62dvh] overflow-y-auto overscroll-contain divide-y divide-black/5">
           {results.length === 0 ? (
             <div className="p-10 text-center text-neutral-500 text-xs">
               No pieces matched "{query}".

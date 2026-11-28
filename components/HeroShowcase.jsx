@@ -31,6 +31,7 @@ export default function HeroShowcase() {
   const heroScrollCueRef = useRef(null);
   const elapsedRef = useRef(0);
   const lastTickRef = useRef(null);
+  const touchStartRef = useRef(null);
 
   const hero = config?.hero || {};
   const overlayAlpha = Math.min(85, Math.max(0, Number(hero.overlayOpacity ?? 65))) / 100;
@@ -150,6 +151,28 @@ export default function HeroShowcase() {
     goToSlide(activeIndex + 1);
   }, [activeIndex, goToSlide]);
 
+  const handleTouchStart = useCallback((e) => {
+    const t = e.touches?.[0];
+    if (!t) return;
+    touchStartRef.current = { x: t.clientX, y: t.clientY };
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e) => {
+      const start = touchStartRef.current;
+      touchStartRef.current = null;
+      const t = e.changedTouches?.[0];
+      if (!start || !t) return;
+      const dx = t.clientX - start.x;
+      const dy = t.clientY - start.y;
+      if (Math.abs(dx) >= 44 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+        if (dx < 0) goToSlide(activeIndex + 1);
+        else goToSlide(activeIndex - 1);
+      }
+    },
+    [activeIndex, goToSlide]
+  );
+
   // Smooth rAF auto-advance progress timer (6.5s per slide, pauses on hover or manual pause)
   useEffect(() => {
     if (isPaused || isHovered) {
@@ -232,8 +255,10 @@ export default function HeroShowcase() {
       ref={heroSectionRef}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       aria-label="Doffor Runway Campaign Showcase"
-      className="relative w-full h-[90vh] min-h-[600px] max-h-[940px] bg-[#0B0B0C] overflow-hidden select-none"
+      className="relative w-full h-[84svh] sm:h-[90vh] min-h-[540px] sm:min-h-[600px] max-h-[940px] bg-[#0B0B0C] overflow-hidden select-none"
     >
       {/* MULTI-SLIDE PARALLAX IMAGE STACK WITH 1100MS CROSS-FADE & KEN BURNS SCALE */}
       <div
@@ -297,24 +322,24 @@ export default function HeroShowcase() {
       </div>
 
       {/* FOREGROUND EDITORIAL LAYOUT */}
-      <div className="relative z-10 h-full max-w-[1440px] mx-auto px-6 sm:px-10 pt-24 pb-8 sm:pb-12 flex flex-col justify-end">
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 lg:gap-12">
+      <div className="relative z-10 h-full max-w-[1440px] mx-auto px-5 sm:px-10 pt-16 sm:pt-24 pb-6 sm:pb-12 flex flex-col justify-end">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-12">
           {/* LEFT: SLIDE COPY + CTAS */}
           <div
             ref={heroCopyRef}
             className="max-w-2xl text-white will-change-[opacity,transform]"
           >
-            <div key={currentSlide.id} className="space-y-4 sm:space-y-5">
+            <div key={currentSlide.id} className="space-y-3 sm:space-y-5">
               <div className="overflow-hidden">
                 <p
-                  className="text-[10px] sm:text-[11px] uppercase tracking-[0.28em] text-white/80 font-medium animate-letter-rise"
+                  className="text-[10px] sm:text-[11px] uppercase tracking-[0.24em] sm:tracking-[0.28em] text-white/80 font-medium animate-letter-rise"
                   style={{ animationDelay: '60ms' }}
                 >
                   {currentSlide.eyebrow}
                 </p>
               </div>
 
-              <h1 className="font-display font-bold text-4xl sm:text-6xl lg:text-[68px] leading-[0.96] tracking-[-0.025em] uppercase">
+              <h1 className="font-display font-bold text-[34px] sm:text-6xl lg:text-[68px] leading-[0.96] tracking-[-0.025em] uppercase">
                 <span className="block overflow-hidden">
                   <span
                     className="block animate-letter-rise"
@@ -334,26 +359,26 @@ export default function HeroShowcase() {
               </h1>
 
               <p
-                className="text-sm sm:text-base text-white/80 max-w-lg leading-relaxed font-light animate-fade-in-slow"
+                className="text-xs sm:text-base text-white/80 max-w-lg leading-relaxed font-light line-clamp-3 sm:line-clamp-none animate-fade-in-slow"
                 style={{ animationDelay: '280ms' }}
               >
                 {currentSlide.description}
               </p>
 
               <div
-                className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2 animate-fade-in-slow"
+                className="flex flex-wrap items-center gap-2.5 sm:gap-4 pt-1 sm:pt-2 animate-fade-in-slow"
                 style={{ animationDelay: '360ms' }}
               >
                 <Link
                   href={currentSlide.primaryCtaHref}
-                  className="inline-flex items-center gap-2.5 bg-white text-[#0B0B0C] px-7 sm:px-8 py-3.5 text-[11px] font-semibold uppercase tracking-[0.18em] hover:bg-neutral-200 transition-all duration-300 hover:gap-3.5"
+                  className="inline-flex items-center gap-2 bg-white text-[#0B0B0C] px-5 sm:px-8 py-3 sm:py-3.5 text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.18em] hover:bg-neutral-200 transition-all duration-300 hover:gap-3"
                   style={{ borderRadius: 'var(--df-radius)' }}
                 >
                   {currentSlide.primaryCtaLabel} <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
                 <Link
                   href={currentSlide.secondaryCtaHref}
-                  className="inline-flex items-center gap-2 border text-white px-7 sm:px-8 py-3.5 text-[11px] font-medium uppercase tracking-[0.18em] hover:bg-white hover:text-[#0B0B0C] transition-colors"
+                  className="inline-flex items-center gap-2 border text-white px-5 sm:px-8 py-3 sm:py-3.5 text-[10px] sm:text-[11px] font-medium uppercase tracking-[0.18em] hover:bg-white hover:text-[#0B0B0C] transition-colors"
                   style={{
                     borderRadius: 'var(--df-radius)',
                     borderColor: 'rgba(255, 255, 255, 0.48)',
@@ -438,7 +463,7 @@ export default function HeroShowcase() {
 
         {/* BOTTOM EDITORIAL RUNWAY CONTROLS: 01 / 02 / 03 HAIRLINE PROGRESS BARS */}
         <div
-          className="mt-8 sm:mt-10 pt-5 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          className="mt-6 sm:mt-10 pt-4 sm:pt-5 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4"
           style={{ borderColor: 'rgba(255, 255, 255, 0.14)' }}
         >
           {/* Slide Progress Selector */}
@@ -501,22 +526,22 @@ export default function HeroShowcase() {
             })}
           </div>
 
-          {/* Right Controls: Mobile Scroll Cue + Prev / Next / Pause */}
-          <div className="flex items-center justify-between sm:justify-end gap-3 text-white">
+          {/* Right Controls: Mobile Featured Link + Prev / Next / Pause */}
+          <div className="flex items-center justify-between sm:justify-end gap-2.5 sm:gap-3 text-white min-w-0">
             {/* Compact mobile link to featured garment */}
             {featured && (
               <Link
                 href={`/product/${featured.slug}`}
-                className="lg:hidden inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-white/80 hover:text-white"
+                className="lg:hidden inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-white/85 hover:text-white min-w-0 flex-1"
               >
-                <ShoppingBag className="w-3 h-3" />
-                <span className="truncate max-w-[165px]">{featured.name}</span>
-                <span className="text-white/50">•</span>
-                <span className="font-semibold tabular-nums">{formatINR(featured.price)}</span>
+                <ShoppingBag className="w-3 h-3 shrink-0" />
+                <span className="truncate">{featured.name}</span>
+                <span className="text-white/50 shrink-0">•</span>
+                <span className="font-semibold tabular-nums shrink-0">{formatINR(featured.price)}</span>
               </Link>
             )}
 
-            <div className="flex items-center gap-1.5 ml-auto">
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
               <button
                 type="button"
                 onClick={handlePrev}

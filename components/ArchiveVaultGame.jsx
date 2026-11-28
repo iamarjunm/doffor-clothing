@@ -301,8 +301,8 @@ export default function ArchiveVaultGame({ mode = 'floating' }) {
 
         {/* STEP 1 & 2: THREE SEALED MATTE-OBSIDIAN GARMENT POUCHES */}
         {!reward ? (
-          <div className="space-y-5">
-            <div className="grid grid-cols-3 gap-3 sm:gap-5">
+          <div className="space-y-4 sm:space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
               {POUCHES.map((pouch, idx) => {
                 const isThisUnsealing = unsealingIndex === idx;
                 const isDimmed = isUnsealing && !isThisUnsealing;
@@ -314,20 +314,20 @@ export default function ArchiveVaultGame({ mode = 'floating' }) {
                     disabled={isUnsealing}
                     onClick={() => handleSelectPouch(idx)}
                     aria-label={`Open ${pouch.label}`}
-                    className={`group relative overflow-hidden bg-[#141417] text-left transition-all duration-500 ease-out focus:outline-none ${
-                      compact ? 'p-4 sm:p-6 min-h-[190px] sm:min-h-[220px]' : 'p-5 sm:p-7 min-h-[220px] sm:min-h-[268px]'
-                    } flex flex-col justify-between ${
+                    className={`group relative overflow-hidden bg-[#141417] text-left transition-all duration-500 ease-out focus:outline-none px-4 py-4 min-h-[82px] flex flex-row sm:flex-col items-center sm:items-stretch justify-between gap-4 sm:gap-0 ${
+                      compact ? 'sm:p-6 sm:min-h-[215px]' : 'sm:p-7 sm:min-h-[264px]'
+                    } ${
                       isThisUnsealing
-                        ? '-translate-y-1.5 scale-[1.01] bg-[#1A1A1F]'
+                        ? 'sm:-translate-y-1.5 scale-[1.01] bg-[#1A1A1F]'
                         : isDimmed
                         ? 'opacity-30 scale-[0.98]'
                         : `${
                             idx === 0
-                              ? 'hover:-rotate-[0.6deg]'
+                              ? 'sm:hover:-rotate-[0.6deg]'
                               : idx === 2
-                              ? 'hover:rotate-[0.6deg]'
-                              : 'hover:scale-[1.015]'
-                          } hover:-translate-y-1.5 hover:bg-[#19191E] active:scale-[0.99]`
+                              ? 'sm:hover:rotate-[0.6deg]'
+                              : 'sm:hover:scale-[1.015]'
+                          } sm:hover:-translate-y-1.5 hover:bg-[#19191E] active:scale-[0.99]`
                     }`}
                     style={{
                       border: isThisUnsealing
@@ -338,7 +338,7 @@ export default function ArchiveVaultGame({ mode = 'floating' }) {
                     {/* Matte Zip-Lock Top Seam Accent */}
                     <span
                       aria-hidden="true"
-                      className="absolute top-3 left-0 right-0 h-px transition-opacity duration-500"
+                      className="absolute top-2.5 sm:top-3 left-0 right-0 h-px transition-opacity duration-500"
                       style={{
                         background: isThisUnsealing
                           ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent)'
@@ -354,13 +354,13 @@ export default function ArchiveVaultGame({ mode = 'floating' }) {
                       }`}
                     />
 
-                    {/* Top Row: Serial + Seal Status */}
-                    <div className="relative z-10 flex items-center justify-between gap-2 pt-2">
-                      <span className="text-[9px] sm:text-[10px] uppercase tracking-[0.22em] text-white/45 font-mono">
+                    {/* Top Row (Desktop) / Left Cluster (Mobile): Serial + Seal Status */}
+                    <div className="relative z-10 hidden sm:flex items-center justify-between gap-2 pt-2">
+                      <span className="text-[10px] uppercase tracking-[0.22em] text-white/45 font-mono">
                         {pouch.serial}
                       </span>
                       <span
-                        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[8px] sm:text-[9px] uppercase tracking-[0.2em] text-white/75"
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-white/75"
                         style={{ border: '1px solid rgba(255, 255, 255, 0.16)' }}
                       >
                         <span
@@ -373,37 +373,42 @@ export default function ArchiveVaultGame({ mode = 'floating' }) {
                     </div>
 
                     {/* Center Swiss Numeral */}
-                    <div className="relative z-10 my-4 sm:my-6">
+                    <div className="relative z-10 flex items-center gap-3.5 sm:block sm:my-6">
                       <span
-                        className={`block font-display font-bold tracking-[-0.04em] leading-none transition-all duration-500 ${
-                          compact ? 'text-4xl sm:text-5xl' : 'text-4xl sm:text-6xl'
+                        className={`block font-display font-bold tracking-[-0.04em] leading-none transition-all duration-500 text-3xl ${
+                          compact ? 'sm:text-5xl' : 'sm:text-6xl'
                         } ${
                           isThisUnsealing
                             ? 'text-white translate-x-0.5'
-                            : 'text-white/85 group-hover:text-white'
+                            : 'text-white/90 group-hover:text-white'
                         }`}
                       >
                         {pouch.number}
                       </span>
-                      <span className="block mt-2 text-[9px] sm:text-[10px] uppercase tracking-[0.24em] text-white/40">
-                        DOFFOR ARCHIVE
-                      </span>
+                      <div>
+                        <span className="block text-[10px] uppercase tracking-[0.22em] text-white/75 sm:text-white/40 sm:mt-2">
+                          DOFFOR ARCHIVE
+                        </span>
+                        <span className="sm:hidden block text-[9px] uppercase tracking-[0.2em] text-white/45 font-mono mt-0.5">
+                          {pouch.serial} • {isThisUnsealing ? 'Unsealing' : 'Sealed'}
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Bottom Action Cue */}
+                    {/* Bottom Action Cue (Desktop) / Right Pill (Mobile) */}
                     <div
-                      className="relative z-10 pt-3 flex items-center justify-between text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-white/65 group-hover:text-white transition-colors"
-                      style={{ borderTop: '1px solid rgba(255, 255, 255, 0.12)' }}
+                      className="relative z-10 sm:pt-3 sm:border-t flex items-center justify-between gap-2 text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.2em] text-white/80 sm:text-white/65 group-hover:text-white transition-colors shrink-0"
+                      style={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
                     >
                       <span>{isThisUnsealing ? 'Unsealing...' : 'Break Seal'}</span>
-                      <ArrowRight className="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" />
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] uppercase tracking-[0.2em] text-white/45">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-[10px] uppercase tracking-[0.18em] sm:tracking-[0.2em] text-white/45">
               <span>One sealed privilege per visitor • Instant checkout code</span>
               <span>Zero spam • 100% live codes</span>
             </div>
@@ -587,6 +592,7 @@ export default function ArchiveVaultGame({ mode = 'floating' }) {
   // FLOATING MODE: Minimal Bottom-Left Obsidian Pill + Full Luxury Modal
   const hiddenFloatingRoutes = ['/admin', '/checkout', '/auth'];
   const isRouteHidden = hiddenFloatingRoutes.some((prefix) => pathname?.startsWith(prefix));
+  const isProductPage = Boolean(pathname?.startsWith('/product/'));
   if (config?.sections?.showVaultGame === false || isRouteHidden) {
     return null;
   }
@@ -597,7 +603,9 @@ export default function ArchiveVaultGame({ mode = 'floating' }) {
         type="button"
         onClick={() => setModalOpen(true)}
         aria-label={reward ? `Open Doffor Vault reward ${reward.code}` : 'Unlock Doffor Vault'}
-        className="fixed bottom-5 left-5 z-[60] no-print group inline-flex items-center gap-2.5 bg-[#0B0B0C] text-white px-4 py-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.34)] hover:bg-[#141417] transition-all duration-300"
+        className={`fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-4 sm:bottom-5 sm:left-5 z-[60] no-print group ${
+          isProductPage ? 'hidden lg:inline-flex' : 'inline-flex'
+        } items-center gap-2.5 bg-[#0B0B0C] text-white px-4 py-2.5 shadow-[0_12px_36px_rgba(0,0,0,0.34)] hover:bg-[#141417] transition-all duration-300`}
         style={{
           border: '1px solid rgba(255, 255, 255, 0.2)',
           borderRadius: '9999px',

@@ -229,7 +229,7 @@ export default function BrandPreloader() {
 
       {/* Foreground Cinema Stage */}
       <div
-        className={`relative z-10 flex h-full w-full flex-col justify-between p-6 sm:p-10 md:p-12 text-white transition-all duration-300 ease-out ${
+        className={`relative z-10 flex h-[100dvh] w-full flex-col justify-between px-5 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:p-10 md:p-12 text-white transition-all duration-300 ease-out ${
           isExiting ? 'opacity-0 scale-[0.985]' : 'opacity-100 scale-100'
         }`}
       >
@@ -312,14 +312,14 @@ export default function BrandPreloader() {
               <div
                 className="flex items-center justify-center mix-blend-difference"
                 style={{
-                  gap: trackingExpanded ? '0.28em' : '0.08em',
+                  gap: trackingExpanded ? '0.2em' : '0.06em',
                   transition: 'gap 1100ms cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
                 {letters.map((char, idx) => (
                   <span
                     key={`${char}-${idx}`}
-                    className="font-display font-bold text-4xl sm:text-6xl md:text-7xl uppercase text-white inline-block leading-none"
+                    className="font-display font-bold text-3xl sm:text-6xl md:text-7xl uppercase text-white inline-block leading-none"
                     style={{
                       transform: wordmarkVisible
                         ? 'translate3d(0, 0%, 0)'

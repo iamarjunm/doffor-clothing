@@ -182,37 +182,39 @@ export default function OrderConfirmationPage() {
               </span>
             </div>
           ) : (
-            <div className="relative grid grid-cols-5 gap-2">
-              <div className="absolute top-4 left-[10%] right-[10%] h-0.5 bg-black/10" />
-              <div
-                className="absolute top-4 left-[10%] h-0.5 bg-bone transition-all duration-500"
-                style={{ width: `${Math.max(0, Math.min(4, currentStep - 1)) * 20}%` }}
-              />
-              {STEPS.map((s) => {
-                const Icon = s.icon;
-                const completed = currentStep >= s.step;
-                const active = currentStep === s.step;
-                return (
-                  <div key={s.key} className="relative flex flex-col items-center text-center z-10">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
-                        completed
-                          ? 'bg-bone text-obsidian border-bone'
-                          : 'bg-white text-ash border-black/15'
-                      } ${active ? 'ring-4 ring-black/15' : ''}`}
-                    >
-                      <Icon className="w-4 h-4" />
+            <div className="overflow-x-auto no-scrollbar py-1">
+              <div className="min-w-[440px] relative grid grid-cols-5 gap-2">
+                <div className="absolute top-4 left-[10%] right-[10%] h-0.5 bg-black/10" />
+                <div
+                  className="absolute top-4 left-[10%] h-0.5 bg-bone transition-all duration-500"
+                  style={{ width: `${Math.max(0, Math.min(4, currentStep - 1)) * 20}%` }}
+                />
+                {STEPS.map((s) => {
+                  const Icon = s.icon;
+                  const completed = currentStep >= s.step;
+                  const active = currentStep === s.step;
+                  return (
+                    <div key={s.key} className="relative flex flex-col items-center text-center z-10">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
+                          completed
+                            ? 'bg-bone text-obsidian border-bone'
+                            : 'bg-white text-ash border-black/15'
+                        } ${active ? 'ring-4 ring-black/15' : ''}`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span
+                        className={`mt-2 font-mono text-[10px] sm:text-xs uppercase tracking-wider ${
+                          completed ? 'text-bone font-bold' : 'text-ash'
+                        }`}
+                      >
+                        {s.label}
+                      </span>
                     </div>
-                    <span
-                      className={`mt-2 font-mono text-[10px] sm:text-xs uppercase tracking-wider ${
-                        completed ? 'text-bone font-bold' : 'text-ash'
-                      }`}
-                    >
-                      {s.label}
-                    </span>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

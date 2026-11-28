@@ -21,6 +21,13 @@ const oswald = Oswald({
   variable: '--font-condensed',
 });
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#FFFFFF',
+};
+
 export const metadata = {
   title: 'DOFFOR — Heavyweight Streetwear & Archive Clothing',
   description:

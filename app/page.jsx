@@ -107,13 +107,13 @@ export default function HomePage() {
             </div>
 
             <Reveal variant="up" delay={120} y={12}>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <div className="flex items-center gap-x-5 sm:gap-x-6 gap-y-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-wrap">
                 {categoryTabs.map((tab) => (
                   <button
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`text-[11px] uppercase tracking-[0.16em] pb-1 transition-all duration-200 ${
+                    className={`text-[11px] uppercase tracking-[0.16em] pb-1 transition-all duration-200 whitespace-nowrap shrink-0 ${
                       activeTab === tab.id
                         ? 'font-semibold border-b border-current opacity-100'
                         : 'opacity-45 hover:opacity-100 editorial-link'
@@ -208,7 +208,7 @@ export default function HomePage() {
             </Reveal>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-6">
             {silhouettes.map((tile, idx) => (
               <Link key={idx} href={tile.href || '/shop'} className="group block">
                 <Reveal variant="curtain" delay={idx * 90}>
@@ -222,14 +222,14 @@ export default function HomePage() {
                   </div>
                 </Reveal>
                 <Reveal variant="up" delay={idx * 90 + 100} y={12}>
-                  <div className="pt-3 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-medium editorial-link">
+                  <div className="pt-2.5 sm:pt-3 flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="text-xs sm:text-sm font-medium editorial-link truncate">
                         {tile.title}
                       </h3>
-                      <p className="text-[11px] opacity-60 mt-0.5">{tile.spec}</p>
+                      <p className="text-[10px] sm:text-[11px] opacity-60 mt-0.5 line-clamp-1">{tile.spec}</p>
                     </div>
-                    <ArrowUpRight className="w-4 h-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                    <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0 mt-0.5" />
                   </div>
                 </Reveal>
               </Link>
@@ -258,28 +258,28 @@ export default function HomePage() {
               </Reveal>
 
               <Reveal variant="up" delay={200} y={18}>
-                <div className="grid grid-cols-3 gap-6 pt-4 border-t border-black/10">
+                <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-4 border-t border-black/10">
                   <div>
-                    <p className="font-display font-bold text-2xl">
+                    <p className="font-display font-bold text-xl sm:text-2xl">
                       {craftStory.stat1Value || '260'}
                     </p>
-                    <p className="text-[10px] uppercase tracking-[0.16em] opacity-60 mt-1">
+                    <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.16em] opacity-60 mt-1">
                       {craftStory.stat1Label || 'Avg GSM Weight'}
                     </p>
                   </div>
                   <div>
-                    <p className="font-display font-bold text-2xl">
+                    <p className="font-display font-bold text-xl sm:text-2xl">
                       {craftStory.stat2Value || '2.5cm'}
                     </p>
-                    <p className="text-[10px] uppercase tracking-[0.16em] opacity-60 mt-1">
+                    <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.16em] opacity-60 mt-1">
                       {craftStory.stat2Label || 'Lycra Rib Collar'}
                     </p>
                   </div>
                   <div>
-                    <p className="font-display font-bold text-2xl">
+                    <p className="font-display font-bold text-xl sm:text-2xl">
                       {craftStory.stat3Value || '100%'}
                     </p>
-                    <p className="text-[10px] uppercase tracking-[0.16em] opacity-60 mt-1">
+                    <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.16em] opacity-60 mt-1">
                       {craftStory.stat3Label || 'Combed Cotton'}
                     </p>
                   </div>

@@ -366,8 +366,8 @@ export default function CheckoutPage() {
             )}
 
             {/* Step 1: Shipping Details */}
-            <section className="card-dark p-6 space-y-5">
-              <div className="flex items-center justify-between gap-2 pb-3 border-b border-black/10">
+            <section className="card-dark p-4 sm:p-6 space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/10">
                 <div className="flex items-center gap-2.5">
                   <span className="w-6 h-6 rounded-sm bg-bone text-obsidian font-mono text-xs font-bold flex items-center justify-center">
                     1
@@ -391,6 +391,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    autoComplete="name"
                     maxLength={120}
                     value={form.fullName}
                     onChange={(e) => handleChange('fullName', e.target.value)}
@@ -406,6 +407,7 @@ export default function CheckoutPage() {
                   <input
                     type="email"
                     required
+                    autoComplete="email"
                     value={form.email}
                     onChange={(e) => handleChange('email', e.target.value)}
                     placeholder="you@domain.com"
@@ -423,6 +425,8 @@ export default function CheckoutPage() {
                     </span>
                     <input
                       type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
                       required
                       maxLength={10}
                       value={form.phone}
@@ -440,6 +444,7 @@ export default function CheckoutPage() {
                   <input
                     type="text"
                     required
+                    autoComplete="street-address"
                     maxLength={300}
                     value={form.line1}
                     onChange={(e) => handleChange('line1', e.target.value)}
@@ -501,6 +506,8 @@ export default function CheckoutPage() {
                   </label>
                   <input
                     type="text"
+                    inputMode="numeric"
+                    autoComplete="postal-code"
                     required
                     maxLength={6}
                     value={form.pincode}

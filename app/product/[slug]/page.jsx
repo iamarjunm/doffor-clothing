@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -103,9 +103,10 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
 
-  // Hover zoom state
+  // Hover zoom & mobile touch swipe state
   const [zoomActive, setZoomActive] = useState(false);
   const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
+  const galleryTouchRef = useRef(null);
 
   // Pincode checker state
   const [pincode, setPincode] = useState('');
@@ -216,10 +217,35 @@ export default function ProductDetailPage() {
   };
 
   const handleMouseMoveZoom = (e) => {
+    if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
     setZoomOrigin({ x, y });
+  };
+
+  const activeImageIdx = Math.max(0, galleryImages.indexOf(displayImage));
+
+  const handleGalleryTouchStart = (e) => {
+    const t = e.touches?.[0];
+    if (!t || galleryImages.length <= 1) return;
+    galleryTouchRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const handleGalleryTouchEnd = (e) => {
+    const start = galleryTouchRef.current;
+    galleryTouchRef.current = null;
+    const t = e.changedTouches?.[0];
+    if (!start || !t || galleryImages.length <= 1) return;
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      const nextIdx =
+        dx < 0
+          ? (activeImageIdx + 1) % galleryImages.length
+          : (activeImageIdx - 1 + galleryImages.length) % galleryImages.length;
+      setActiveImage(galleryImages[nextIdx]);
+    }
   };
 
   const handleAddToBag = () => {
@@ -290,12 +316,12 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="bg-obsidian text-bone min-h-screen">
+    <div className="bg-obsidian text-bone min-h-screen pb-24 lg:pb-0">
       <SizeGuideModal open={sizeGuideOpen} onClose={() => setSizeGuideOpen(false)} />
 
       {/* Breadcrumbs */}
       <div className="border-b border-white/[0.06] bg-charcoal/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-ash">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 overflow-x-auto whitespace-nowrap no-scrollbar font-mono text-[11px] uppercase tracking-wider text-ash">
           <Link href="/" className="hover:text-acid transition-colors">
             Home
           </Link>
@@ -311,20 +337,26 @@ export default function ProductDetailPage() {
             {product.categoryLabel}
           </Link>
           <span>/</span>
-          <span className="text-bone truncate max-w-[240px] sm:max-w-none">{product.name}</span>
+          <span className="text-bone truncate max-w-[200px] sm:max-w-none">{product.name}</span>
         </div>
       </div>
 
       {/* Main Product Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
-          {/* LEFT: Multi-Image Gallery + Hover Zoom */}
-          <div className="lg:col-span-6 space-y-4">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          {/* LEFT: Multi-Image Gallery + Touch Swipe & Desktop Hover Zoom */}
+          <div className="lg:col-span-6 space-y-3 sm:space-y-4">
             <div
-              className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface border border-white/10 cursor-zoom-in"
-              onMouseEnter={() => setZoomActive(true)}
+              className="relative aspect-[3/4] rounded-sm overflow-hidden bg-surface border border-white/10 lg:cursor-zoom-in select-none"
+              onMouseEnter={() => {
+                if (typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches) {
+                  setZoomActive(true);
+                }
+              }}
               onMouseLeave={() => setZoomActive(false)}
               onMouseMove={handleMouseMoveZoom}
+              onTouchStart={handleGalleryTouchStart}
+              onTouchEnd={handleGalleryTouchEnd}
             >
               <img
                 src={displayImage}
@@ -337,7 +369,7 @@ export default function ProductDetailPage() {
               />
 
               {/* Badges */}
-              <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-1.5 pointer-events-none">
+              <div className="absolute top-3 left-3 sm:top-3.5 sm:left-3.5 flex flex-wrap gap-1.5 pointer-events-none">
                 {product.badges?.map((badge, idx) => (
                   <span
                     key={badge}
@@ -352,11 +384,17 @@ export default function ProductDetailPage() {
                 ))}
               </div>
 
-              <span className="absolute bottom-3.5 left-3.5 px-2.5 py-1 rounded-sm bg-obsidian/85 backdrop-blur-md border border-white/15 font-mono text-[10px] uppercase tracking-wider text-bone pointer-events-none">
+              {galleryImages.length > 1 && (
+                <span className="lg:hidden absolute top-3 right-3 px-2 py-1 bg-white/90 backdrop-blur-sm border border-black/10 font-mono text-[10px] font-semibold tabular-nums text-[#0B0B0C] pointer-events-none">
+                  {activeImageIdx + 1} / {galleryImages.length}
+                </span>
+              )}
+
+              <span className="absolute bottom-3 left-3 sm:bottom-3.5 sm:left-3.5 px-2.5 py-1 rounded-sm bg-obsidian/85 backdrop-blur-md border border-white/15 font-mono text-[10px] uppercase tracking-wider text-bone pointer-events-none">
                 {product.gsm} GSM • {product.fit}
               </span>
 
-              <span className="hidden sm:inline-block absolute bottom-3.5 right-3.5 px-2.5 py-1 rounded-sm bg-white/90 backdrop-blur-md border border-[#0B0B0C]/15 font-mono text-[10px] text-[#0B0B0C]/80 pointer-events-none">
+              <span className="hidden lg:inline-block absolute bottom-3.5 right-3.5 px-2.5 py-1 rounded-sm bg-white/90 backdrop-blur-md border border-[#0B0B0C]/15 font-mono text-[10px] text-[#0B0B0C]/80 pointer-events-none">
                 Hover to Zoom
               </span>
             </div>
@@ -543,24 +581,24 @@ export default function ProductDetailPage() {
 
             {/* Quantity Stepper + CTA Buttons */}
             <div className="space-y-3 pt-1">
-              <div className="flex flex-wrap sm:flex-nowrap items-stretch gap-3">
+              <div className="grid grid-cols-[auto_1fr_auto] items-stretch gap-2 sm:gap-3">
                 {/* Quantity */}
                 <div className="flex items-center bg-charcoal border border-white/15 rounded-sm">
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="px-3.5 py-3 text-ash hover:text-bone transition-colors"
+                    className="px-2.5 sm:px-3.5 py-3 text-ash hover:text-bone transition-colors"
                     aria-label="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="w-10 text-center font-mono text-sm font-bold tabular-nums">
+                  <span className="w-7 sm:w-10 text-center font-mono text-sm font-bold tabular-nums">
                     {quantity}
                   </span>
                   <button
                     type="button"
                     onClick={() => setQuantity((q) => Math.min(maxQty, q + 1))}
-                    className="px-3.5 py-3 text-ash hover:text-bone transition-colors"
+                    className="px-2.5 sm:px-3.5 py-3 text-ash hover:text-bone transition-colors"
                     aria-label="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
@@ -572,10 +610,10 @@ export default function ProductDetailPage() {
                   type="button"
                   disabled={selectedSizeStock <= 0}
                   onClick={handleAddToBag}
-                  className="btn-acid flex-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="btn-acid px-4 sm:px-7 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <ShoppingBag className="w-4 h-4" />
-                  {selectedSizeStock <= 0 ? 'Sold Out' : 'Add to Bag'}
+                  <ShoppingBag className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{selectedSizeStock <= 0 ? 'Sold Out' : 'Add to Bag'}</span>
                 </button>
 
                 {/* Wishlist */}
@@ -583,7 +621,7 @@ export default function ProductDetailPage() {
                   type="button"
                   onClick={() => toggleWishlist(product.id, product.name)}
                   aria-label="Save to wishlist"
-                  className={`px-4 rounded-sm border flex items-center justify-center transition-colors ${
+                  className={`px-3.5 sm:px-4 rounded-sm border flex items-center justify-center transition-colors ${
                     wishlisted
                       ? 'bg-crimson border-crimson text-white'
                       : 'bg-charcoal border-white/15 text-bone hover:border-acid hover:text-acid'
@@ -982,13 +1020,36 @@ export default function ProductDetailPage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3.5 gap-y-8 sm:gap-5">
             {relatedProducts.map((rel) => (
               <ProductCard key={rel.id} product={rel} />
             ))}
           </div>
         </section>
       )}
+
+      {/* STICKY MOBILE BUY BAR (1-TAP CONVERSION ON PHONES) */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-black/10 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(0,0,0,0.06)] no-print">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-mono font-bold text-base text-[#0B0B0C] leading-none tabular-nums">
+              {formatINR(product.price)}
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.14em] text-neutral-500 mt-1 truncate">
+              Size {selectedSize} • {selectedColor}
+            </p>
+          </div>
+          <button
+            type="button"
+            disabled={selectedSizeStock <= 0}
+            onClick={handleAddToBag}
+            className="btn-acid px-6 py-3 shrink-0 disabled:opacity-40"
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            {selectedSizeStock <= 0 ? 'Sold Out' : 'Add to Bag'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

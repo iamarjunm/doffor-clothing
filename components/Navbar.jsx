@@ -250,13 +250,13 @@ export default function Navbar() {
         {/* Live Store Config Top Announcement Bar */}
         {config.announcementEnabled !== false && (
           <div
-            className="py-2 px-4 text-center transition-colors duration-300"
+            className="py-2 px-3 sm:px-4 text-center transition-colors duration-300"
             style={{
               backgroundColor: config.announcementBg || '#0B0B0C',
               color: config.announcementTextColor || '#FFFFFF',
             }}
           >
-            <p className="text-[10px] font-medium tracking-[0.22em] uppercase truncate max-w-5xl mx-auto opacity-95">
+            <p className="text-[9px] sm:text-[10px] font-medium tracking-[0.14em] sm:tracking-[0.22em] leading-snug uppercase line-clamp-2 sm:truncate max-w-5xl mx-auto opacity-95">
               {config.announcementText ||
                 `Complimentary Express Shipping on Orders Above ₹1,499 — ${collectionLabel} Now Live`}
             </p>
@@ -272,8 +272,8 @@ export default function Navbar() {
           }`}
         >
           <div
-            className={`max-w-[1440px] mx-auto px-4 sm:px-8 grid grid-cols-3 items-center transition-[height] duration-300 ease-out ${
-              scrolled ? 'h-16' : 'h-[72px]'
+            className={`max-w-[1440px] mx-auto px-3.5 sm:px-8 grid grid-cols-3 items-center transition-[height] duration-300 ease-out ${
+              scrolled ? 'h-14 sm:h-16' : 'h-16 sm:h-[72px]'
             }`}
           >
             {/* Left Column: Mobile Menu Toggle + Desktop Mega-Menu Triggers */}
@@ -285,7 +285,7 @@ export default function Navbar() {
                   setUserMenuOpen(false);
                   setMobileOpen((prev) => !prev);
                 }}
-                className="lg:hidden inline-flex items-center justify-center p-1.5 -ml-1.5 text-[#0B0B0C] hover:opacity-65 transition-opacity"
+                className="lg:hidden inline-flex items-center justify-center w-10 h-10 -ml-2 text-[#0B0B0C] hover:opacity-65 transition-opacity"
                 aria-label={mobileOpen ? 'Close navigation menu' : 'Open navigation menu'}
                 aria-expanded={mobileOpen}
               >
@@ -395,14 +395,14 @@ export default function Navbar() {
               <Link
                 href="/"
                 onClick={closeMenuNow}
-                className="font-display font-bold text-xl sm:text-2xl tracking-[0.34em] uppercase pl-[0.34em] text-[#0B0B0C] whitespace-nowrap hover:opacity-80 transition-opacity"
+                className="font-display font-bold text-[17px] sm:text-2xl tracking-[0.24em] sm:tracking-[0.34em] uppercase pl-[0.24em] sm:pl-[0.34em] text-[#0B0B0C] whitespace-nowrap hover:opacity-80 transition-opacity"
               >
                 {config.brandWordmark || 'DOFFOR'}
               </Link>
             </div>
 
             {/* Right Column: Clean Utility Controls (NO standalone Admin button here) */}
-            <div className="flex items-center justify-end gap-5 sm:gap-6">
+            <div className="flex items-center justify-end gap-2 sm:gap-6">
               {/* Search */}
               <button
                 type="button"
@@ -411,7 +411,7 @@ export default function Navbar() {
                   setUserMenuOpen(false);
                   setSearchOpen(true);
                 }}
-                className="inline-flex items-center justify-center gap-1.5 h-9 leading-none text-[11px] uppercase tracking-[0.16em] text-[#0B0B0C]/75 hover:text-[#0B0B0C] transition-colors whitespace-nowrap"
+                className="inline-flex items-center justify-center gap-1.5 min-w-[36px] h-10 sm:h-9 leading-none text-[11px] uppercase tracking-[0.16em] text-[#0B0B0C]/75 hover:text-[#0B0B0C] transition-colors whitespace-nowrap"
                 aria-label="Search catalog"
               >
                 <Search className="w-[15px] h-[15px] stroke-[1.6] shrink-0" />
@@ -858,7 +858,7 @@ export default function Navbar() {
         }`}
       >
         <div
-          className={`h-full w-full bg-white text-[#0B0B0C] flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          className={`h-[100dvh] w-full bg-white text-[#0B0B0C] flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
             mobileOpen ? 'translate-y-0' : '-translate-y-3'
           }`}
         >
@@ -868,14 +868,14 @@ export default function Navbar() {
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
-              className="font-display font-bold text-lg tracking-[0.34em] uppercase pl-[0.34em]"
+              className="font-display font-bold text-lg tracking-[0.3em] uppercase pl-[0.3em]"
             >
               {config.brandWordmark || 'DOFFOR'}
             </Link>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="p-1.5 -mr-1.5 text-[#0B0B0C] hover:opacity-65 transition-opacity"
+              className="w-10 h-10 -mr-2 flex items-center justify-center text-[#0B0B0C] hover:opacity-65 transition-opacity"
               aria-label="Close navigation menu"
             >
               <X className="w-5 h-5 stroke-[1.6]" />
@@ -883,7 +883,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Drawer Scrollable Content */}
-          <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+          <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-6 space-y-6">
             {/* Quick Search Bar */}
             <button
               type="button"
@@ -1026,7 +1026,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Account Footer Section (Admin Panel ONLY here when isAdmin === true) */}
-          <div className="border-t border-black/10 bg-[#F6F5F2] px-5 py-4 space-y-3 shrink-0">
+          <div className="border-t border-black/10 bg-[#F6F5F2] px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-3 shrink-0">
             {user ? (
               <>
                 <div className="flex items-center justify-between">

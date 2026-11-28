@@ -1064,7 +1064,7 @@ export default function AdminPage() {
       {/* ================================================== */}
       {/* 2. TOP COMMAND BAR                                 */}
       {/* ================================================== */}
-      <header className="sticky top-0 z-30 glass-dark border-b border-white/[0.08]">
+      <header className="relative lg:sticky lg:top-16 z-20 glass-dark border-b border-white/[0.08]">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="w-9 h-9 rounded-sm bg-acid text-obsidian flex items-center justify-center font-display font-black text-lg">
@@ -1159,7 +1159,7 @@ export default function AdminPage() {
         {/* Sidebar Navigation (Desktop) & Scrollable Pills (Mobile) */}
         <aside className="lg:w-64 shrink-0">
           <div className="lg:sticky lg:top-24 space-y-4">
-            <nav className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0">
+            <nav className="flex lg:flex-col gap-1.5 overflow-x-auto no-scrollbar pb-2 lg:pb-0 -mx-4 px-4 lg:mx-0 lg:px-0">
               {NAV_TABS.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
@@ -1168,9 +1168,9 @@ export default function AdminPage() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center justify-between gap-3 px-3.5 py-3 rounded-sm font-mono text-xs uppercase tracking-wider transition-all shrink-0 text-left border ${
+                    className={`flex items-center justify-between gap-3 px-3.5 py-2.5 lg:py-3 rounded-sm font-mono text-xs uppercase tracking-wider transition-all shrink-0 text-left border ${
                       active
-                        ? 'bg-acid text-obsidian border-acid font-bold shadow-[0_0_24px_rgba(232,255,42,0.18)]'
+                        ? 'bg-acid text-obsidian border-acid font-bold shadow-sm'
                         : 'bg-charcoal/80 text-ash border-white/[0.06] hover:border-white/20 hover:text-bone'
                     }`}
                   >

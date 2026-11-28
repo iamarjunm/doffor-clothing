@@ -30,10 +30,10 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-[#0B0B0C] text-white mt-24 no-print">
-      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12">
+    <footer className="bg-[#0B0B0C] text-white mt-16 sm:mt-24 no-print">
+      <div className="max-w-[1440px] mx-auto px-5 sm:px-10 py-14 sm:py-16 grid grid-cols-2 lg:grid-cols-12 gap-x-6 gap-y-10 lg:gap-12">
         {/* Brand & Newsletter */}
-        <div className="lg:col-span-5 space-y-6">
+        <div className="col-span-2 lg:col-span-5 space-y-6">
           <Link href="/" className="inline-block font-display font-bold text-2xl tracking-[0.34em] uppercase">
             {config.brandWordmark || 'DOFFOR'}
           </Link>
@@ -46,7 +46,10 @@ export default function Footer() {
             <label className="block text-[10px] uppercase tracking-[0.22em] text-neutral-400">
               Private Drop List — ₹150 Off First Order
             </label>
-            <div className="flex border-b border-white/30 focus-within:border-white transition-colors">
+            <div
+              className="flex border-b focus-within:border-white transition-colors"
+              style={{ borderColor: 'rgba(255, 255, 255, 0.3)' }}
+            >
               <input
                 type="email"
                 required
@@ -58,7 +61,7 @@ export default function Footer() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-2 text-white/80 hover:text-white transition-colors"
+                className="px-3 text-white/80 hover:text-white transition-colors"
                 aria-label="Subscribe"
               >
                 <ArrowRight className="w-4 h-4" />
@@ -73,7 +76,7 @@ export default function Footer() {
         </div>
 
         {/* Shop */}
-        <div className="lg:col-span-2 space-y-3.5">
+        <div className="col-span-1 lg:col-span-2 space-y-3.5">
           <h4 className="text-[10px] uppercase tracking-[0.22em] text-neutral-500 font-medium">
             Collections
           </h4>
@@ -91,7 +94,7 @@ export default function Footer() {
         </div>
 
         {/* House */}
-        <div className="lg:col-span-2 space-y-3.5">
+        <div className="col-span-1 lg:col-span-2 space-y-3.5">
           <h4 className="text-[10px] uppercase tracking-[0.22em] text-neutral-500 font-medium">
             House
           </h4>
@@ -104,11 +107,11 @@ export default function Footer() {
         </div>
 
         {/* Client Services */}
-        <div className="lg:col-span-3 space-y-3.5">
+        <div className="col-span-2 lg:col-span-3 space-y-3.5">
           <h4 className="text-[10px] uppercase tracking-[0.22em] text-neutral-500 font-medium">
             Client Services
           </h4>
-          <ul className="space-y-2.5 text-xs text-neutral-300">
+          <ul className="grid grid-cols-2 lg:grid-cols-1 gap-y-2.5 gap-x-4 text-xs text-neutral-300">
             <li><Link href="/size-guide" className="hover:text-white transition-colors">Size & Fit Guide</Link></li>
             <li><Link href="/shipping-returns" className="hover:text-white transition-colors">Shipping & Exchanges</Link></li>
             <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
@@ -116,14 +119,14 @@ export default function Footer() {
             <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
           </ul>
 
-          <p className="text-[11px] text-neutral-500 pt-4">
+          <p className="text-[11px] text-neutral-500 pt-2">
             Payments processed securely via Razorpay (UPI, Cards, Netbanking{config.codEnabled !== false ? ' & COD' : ''}).
           </p>
         </div>
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="max-w-[1440px] mx-auto px-6 sm:px-10 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
+      <div className="border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}>
+        <div className="max-w-[1440px] mx-auto px-5 sm:px-10 pt-6 pb-20 sm:pb-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500 text-center sm:text-left">
           <p>© {new Date().getFullYear()} {footerCfg.copyright || 'DOFFOR CLOTHING. ALL RIGHTS RESERVED.'}</p>
           <div className="flex items-center gap-6">
             <a

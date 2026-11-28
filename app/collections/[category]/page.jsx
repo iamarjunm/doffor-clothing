@@ -157,14 +157,14 @@ export default function CollectionPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-white/[0.08]">
           {/* Switch between collections */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-wrap -mx-4 px-4 sm:mx-0 sm:px-0">
             {categories.map((tab) => {
               const active = tab.id === category;
               return (
                 <Link
                   key={tab.id}
                   href={`/collections/${tab.id}`}
-                  className={`px-3.5 py-2 rounded-sm font-mono text-xs uppercase tracking-wider border transition-colors ${
+                  className={`px-3.5 py-2 rounded-sm font-mono text-xs uppercase tracking-wider border transition-colors whitespace-nowrap shrink-0 ${
                     active
                       ? 'bg-acid text-obsidian border-acid font-bold'
                       : 'bg-charcoal text-ash border-[#0B0B0C]/15 hover:border-[#0B0B0C]/50 hover:text-bone'
@@ -252,7 +252,7 @@ export default function CollectionPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3.5 gap-y-8 sm:gap-5">
             {collectionProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

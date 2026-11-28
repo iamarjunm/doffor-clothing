@@ -138,8 +138,8 @@ export default function ShopPage() {
       {/* Main Catalog Controls & Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
         {/* Top Category Pills + Mobile Filter Toggle */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-wrap -mx-4 px-4 sm:mx-0 sm:px-0">
             {categories.map((cat) => {
               const active = category === cat.id;
               return (
@@ -147,7 +147,7 @@ export default function ShopPage() {
                   key={cat.id}
                   type="button"
                   onClick={() => setCategory(cat.id)}
-                  className={`px-4 py-2 rounded-sm font-mono text-xs uppercase tracking-wider border transition-all ${
+                  className={`px-3.5 sm:px-4 py-2 rounded-sm font-mono text-xs uppercase tracking-wider border transition-all whitespace-nowrap shrink-0 ${
                     active
                       ? 'bg-acid text-obsidian border-acid font-bold'
                       : 'bg-charcoal text-ash border-[#0B0B0C]/15 hover:border-[#0B0B0C]/50 hover:text-bone'
@@ -159,17 +159,17 @@ export default function ShopPage() {
             })}
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
             <button
               type="button"
               onClick={() => setShowFiltersMobile((prev) => !prev)}
-              className="lg:hidden inline-flex items-center gap-2 px-3.5 py-2 rounded-sm bg-charcoal border border-white/15 font-mono text-xs uppercase tracking-wider text-bone"
+              className="lg:hidden inline-flex items-center gap-2 px-3.5 py-2 rounded-sm bg-charcoal border border-white/15 font-mono text-xs uppercase tracking-wider text-bone shrink-0"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-acid" />
               Filters
             </button>
 
-            <div className="relative flex-1 sm:w-64">
+            <div className="relative flex-1 min-w-[160px] sm:w-64">
               <Search className="w-4 h-4 text-ash absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
@@ -194,7 +194,7 @@ export default function ShopPage() {
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
               aria-label="Sort products"
-              className="bg-charcoal border border-white/15 rounded-sm px-3 py-2 font-mono text-xs text-bone focus:outline-none focus:border-acid"
+              className="w-full sm:w-auto bg-charcoal border border-white/15 rounded-sm px-3 py-2 font-mono text-xs text-bone focus:outline-none focus:border-acid"
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.id} value={opt.id} className="bg-charcoal text-bone">
@@ -303,7 +303,7 @@ export default function ShopPage() {
 
         {/* Product Grid */}
         {loading && products.length === 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3.5 gap-y-8 sm:gap-5">
             {[1, 2, 3, 4].map((n) => (
               <div
                 key={n}
@@ -312,7 +312,7 @@ export default function ShopPage() {
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="card-dark p-12 text-center space-y-4">
+          <div className="card-dark p-10 sm:p-12 text-center space-y-4">
             <p className="font-mono text-xs uppercase tracking-widest text-acid">
               NO MATCHING SILHOUETTES
             </p>
@@ -330,7 +330,7 @@ export default function ShopPage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-3.5 gap-y-8 sm:gap-5">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

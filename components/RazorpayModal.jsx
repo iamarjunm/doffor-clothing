@@ -44,7 +44,7 @@ export default function RazorpayModal({ open, orderData, customer, onClose, onPa
     <div className="fixed inset-0 z-[95] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-black/85 backdrop-blur-sm" onClick={!processing ? onClose : undefined} />
 
-      <div className="relative z-10 w-full max-w-md bg-[#0E1320] text-white rounded-md border border-blue-500/30 shadow-2xl overflow-hidden animate-fade-up">
+      <div className="relative z-10 w-full max-w-md max-h-[92dvh] overflow-y-auto overscroll-contain bg-[#0E1320] text-white rounded-md border border-blue-500/30 shadow-2xl animate-fade-up">
         <div className="bg-gradient-to-r from-[#0B2A6B] to-[#1A56DB] px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded bg-white border border-white/25 flex items-center justify-center font-display font-extrabold text-[#0B0B0C] text-lg">
@@ -62,7 +62,10 @@ export default function RazorpayModal({ open, orderData, customer, onClose, onPa
           </button>
         </div>
 
-        <div className="px-5 py-3 bg-[#131B2E] border-b border-white/10 flex items-center justify-between">
+        <div
+          className="px-5 py-3 bg-[#131B2E] border-b flex items-center justify-between"
+          style={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
+        >
           <div>
             <p className="text-[11px] text-blue-200/70">Paying as</p>
             <p className="text-xs font-medium text-white">
@@ -75,7 +78,10 @@ export default function RazorpayModal({ open, orderData, customer, onClose, onPa
           </div>
         </div>
 
-        <div className="grid grid-cols-4 border-b border-white/10 bg-[#0B0F1A]">
+        <div
+          className="grid grid-cols-4 border-b bg-[#0B0F1A]"
+          style={{ borderColor: 'rgba(255, 255, 255, 0.12)' }}
+        >
           {[
             { id: 'upi', label: 'UPI / QR', icon: Smartphone },
             { id: 'card', label: 'Card', icon: CreditCard },
